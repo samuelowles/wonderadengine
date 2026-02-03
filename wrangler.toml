@@ -1,0 +1,9 @@
+name = "wondura-engine"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./dist"
+
+[vars]
+APP_ENV = "production"
+
+# Secrets set via: wrangler secret put GOOGLE_AI_KEY
+# Secrets set via: wrangler secret put PARALLEL_API_KEY

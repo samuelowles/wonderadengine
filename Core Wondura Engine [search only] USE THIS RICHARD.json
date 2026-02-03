@@ -1,0 +1,714 @@
+{
+  "name": "Core Wondura Engine [search only] USE THIS RICHARD",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Wondura Test",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Where to?"
+            },
+            {
+              "fieldLabel": "When?"
+            },
+            {
+              "fieldLabel": "Activity 1"
+            },
+            {
+              "fieldLabel": "Activity 2"
+            },
+            {
+              "fieldLabel": "Activity 3"
+            },
+            {
+              "fieldLabel": "Dealmaker"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -480,
+        -240
+      ],
+      "id": "b2736590-51b1-4b71-8ef1-8b5c0e3cb0a1",
+      "name": "On form submission",
+      "webhookId": "aefc9a84-4f79-409e-87a2-79ec9452726e"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool Name: Weather Search\n\nTool Description: \nSearches comprehensive weather information for any location worldwide. \nAutomatically adapts to provide general weather or specialized reports.\n\nSupported weather types:\n- general: Standard weather (temperature, precipitation, wind, forecasts)\n- wind: Detailed wind conditions for sailing, windsurfing, aviation\n- surf: Wave height, swell, tides, water temperature, surf conditions\n- snow: Snowfall, snow depth, ski conditions, avalanche warnings\n- marine: Sea state, coastal conditions, marine forecasts\n- aviation: METAR/TAF, ceiling, visibility, flight conditions\n- storm: Severe weather warnings, thunderstorms, alerts\n- cycling: Road conditions, wind analysis, hourly forecasts\n- hiking: Trail weather, elevation conditions, outdoor safety\n\nRequired Inputs:\n- location (string): City, region, coordinates, or address\n- weather_type (string, optional): Type of weather report (defaults to 'general')\n- timeframe (string, optional): Time period (defaults to 'current and forecast')\n\nExample agent usage:\n\"Get wind conditions for Auckland\"\n\"Check surf at Piha Beach\"\n\"Snow report for Queenstown\"\n\"General weather for Wellington tomorrow\"\n",
+        "method": "POST",
+        "url": "https://api.parallel.ai/v1beta/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "parallel-beta",
+              "value": "search-extract-2025-10-10"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `Find relevant weather reports and information that match the users query \n\nYou must use the request format:\n\n{\n  \"objective\": \"Search objective\",\n  \"processor\": \"pro\",\n  \"max_results\": 20,\n  \"max_chars_per_result\": 10000\n}\n\nThe objective should describe what local weather information to find for the destination, dealmaker, activities and dates.`, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        48
+      ],
+      "id": "1df0d76c-e5dd-4b19-827f-c33b3843d030",
+      "name": "Weather Search",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wp8pDceYgFNTt3PJ",
+          "name": "ParallelAI-Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool Name: Local Events Search\n\nTool Description: \nSearches comprehensive local event information for any location worldwide. \nAutomatically adapts to find general events or specialized event categories with detailed information about dates, times, venues, tickets, and activities.\n\nSupported event types:\n- general: All upcoming events, activities, and things to do\n- concerts: Live music, performances, festivals, and shows\n- food_drink: Restaurants, food festivals, tastings, brewery tours, markets\n- sports: Games, matches, tournaments, races, and sporting events\n- arts_culture: Museums, galleries, theater, exhibitions, cultural performances\n- family: Kid-friendly activities, family events, children's entertainment\n- outdoor: Hiking, adventure activities, outdoor recreation, nature events\n- nightlife: Bars, clubs, late-night entertainment, DJ events\n- festivals: Community festivals, celebrations, cultural festivals, street fairs\n- educational: Workshops, classes, seminars, lectures, learning events\n- business: Networking events, conferences, professional meetups, trade shows\n- community: Local gatherings, volunteer opportunities, neighborhood events\n\nRequired Inputs:\n- location (string): City, neighborhood, region, address, or \"near me\"\n- event_type (string, optional): Type of event to search for (defaults to 'general')\n- timeframe (string, optional): When to search (defaults to 'upcoming events')\n  Examples: \"today\", \"this weekend\", \"this week\", \"this month\", \"next month\"\n\nExample agent usage:\n\"What's happening in Auckland this weekend?\"\n\"Find concerts in Wellington tonight\"\n\"Family-friendly events near me\"\n\"Food and wine festivals in Hawke's Bay\"\n\"Business networking events in Christchurch next week\"\n\"Things to do in Queenstown\"\n",
+        "method": "POST",
+        "url": "https://api.parallel.ai/v1beta/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "parallel-beta",
+              "value": "search-extract-2025-10-10"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `Find any local events that match the users query\n\nYou must use the request format:\n\n{\n  \"objective\": \"Search objective\",\n  \"processor\": \"pro\",\n  \"max_results\": 20,\n  \"max_chars_per_result\": 10000\n}\n\nThe objective should describe what local events information to find for the destination, dealmaker, activities and dates.`, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2208,
+        16
+      ],
+      "id": "1528494f-a69e-4275-a293-140aa360313d",
+      "name": "Local Events Search2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wp8pDceYgFNTt3PJ",
+          "name": "ParallelAI-Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool Name: Food & Dining Search\n\nTool Description: \nSearches comprehensive restaurant and dining information for any location worldwide. \nAutomatically adapts to find general dining options or specialized cuisine types with detailed information about menus, prices, hours, reviews, reservations, and dining experiences.\n\nSupported dining types:\n- general: All restaurants, cafes, and dining options\n- fine_dining: Upscale restaurants, tasting menus, fine dining experiences\n- casual: Casual dining, family restaurants, bistros, brasseries\n- cafes: Coffee shops, cafes, breakfast spots, brunch venues\n- bars_pubs: Bars, pubs, taverns, wine bars, cocktail lounges\n- fast_food: Quick service, fast casual, takeaway, food trucks\n- ethnic: Specific cuisines (Italian, Japanese, Indian, Thai, Mexican, Chinese, etc.)\n- vegetarian_vegan: Plant-based dining, vegetarian, vegan restaurants\n- seafood: Seafood restaurants, fish markets, oyster bars\n- steakhouse: Steakhouses, grill houses, BBQ restaurants\n- bakery_dessert: Bakeries, patisseries, dessert bars, ice cream shops\n- brunch: Brunch spots, breakfast restaurants, weekend dining\n- date_night: Romantic dining, intimate settings, special occasions\n- group_dining: Large group venues, banquet dining, party restaurants\n- takeaway_delivery: Delivery options, takeaway restaurants, meal prep\n\nRequired Inputs:\n- location (string): City, neighborhood, street address, or \"near me\"\n- dining_type (string, optional): Type of dining experience (defaults to 'general')\n- occasion (string, optional): Dining occasion or requirement\n  Examples: \"date night\", \"family-friendly\", \"business lunch\", \"celebration\", \"budget-friendly\", \"quick meal\"\n- cuisine_preference (string, optional): Specific cuisine or dietary requirements\n  Examples: \"Italian\", \"gluten-free\", \"halal\", \"kosher\", \"vegetarian\"\n- timeframe (string, optional): When dining (defaults to 'now or soon')\n  Examples: \"open now\", \"tonight\", \"tomorrow lunch\", \"this weekend\", \"late night\"\n\nExample agent usage:\n\"Find Italian restaurants in Auckland\"\n\"Where's good for brunch in Ponsonby?\"\n\"Best seafood restaurants near me\"\n\"Vegan-friendly cafes in Wellington\"\n\"Romantic dinner spots in Queenstown for tonight\"\n\"Family restaurants open now\"\n\"Cheap eats in the CBD\"\n\"Late night food in Auckland\"\n\"Gluten-free bakeries near me\"",
+        "method": "POST",
+        "url": "https://api.parallel.ai/v1beta/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "parallel-beta",
+              "value": "search-extract-2025-10-10"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `Find the local food and dining options that match the users query\n\nYou must use the request format:\n\n{\n  \"objective\": \"Search objective\",\n  \"processor\": \"pro\",\n  \"max_results\": 20,\n  \"max_chars_per_result\": 10000\n}\n\nThe objective should describe what local food and dining information to find for the destination, dealmaker, activities and dates.`, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1776,
+        128
+      ],
+      "id": "3c70c7a1-d662-4cf2-b02f-27b79e0d35b0",
+      "name": "Food and Dining Search",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wp8pDceYgFNTt3PJ",
+          "name": "ParallelAI-Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool Name: Local Activities Search\n\nTool Description: \nSearches comprehensive local activities, attractions, and experiences for any location worldwide. \nAutomatically adapts to find general activities or specialized experience types with detailed information about bookings, schedules, prices, requirements, and activity details.\n\nSupported activity types:\n- general: All local activities, attractions, and things to do\n- outdoor: Hiking, cycling, kayaking, rock climbing, nature walks, adventure sports\n- water_sports: Surfing, diving, snorkeling, sailing, paddleboarding, jet skiing\n- tours: City tours, guided tours, walking tours, bus tours, specialty tours\n- adventure: Bungee jumping, skydiving, zip-lining, extreme sports, adrenaline activities\n- cultural: Museums, art galleries, heritage sites, cultural centers, historical landmarks\n- entertainment: Cinemas, theaters, comedy clubs, arcades, bowling, mini golf\n- wellness: Spas, yoga, meditation, hot springs, wellness centers, massage therapy\n- fitness: Gyms, fitness classes, sports facilities, climbing gyms, swimming pools\n- wildlife: Zoos, aquariums, wildlife parks, animal encounters, nature reserves\n- scenic: Lookouts, viewpoints, scenic drives, photo spots, natural attractions\n- shopping: Markets, shopping districts, boutiques, specialty stores, malls\n- family: Playgrounds, theme parks, family attractions, kid-friendly activities\n- romantic: Couples activities, romantic experiences, sunset spots, wine tours\n- educational: Classes, workshops, learning experiences, skill development\n- indoor: Indoor activities, rainy day options, climate-controlled venues\n\nRequired Inputs:\n- location (string): City, region, neighborhood, address, or \"near me\"\n- activity_type (string, optional): Type of activity to search for (defaults to 'general')\n- group_type (string, optional): Who's participating\n  Examples: \"solo\", \"couple\", \"family\", \"friends\", \"group\", \"kids\"\n- timeframe (string, optional): When to do the activity (defaults to 'flexible')\n  Examples: \"today\", \"tomorrow\", \"this weekend\", \"rainy day\", \"evening\", \"morning\"\n- preferences (string, optional): Activity requirements or preferences\n  Examples: \"free\", \"budget-friendly\", \"indoor\", \"outdoor\", \"accessible\", \"pet-friendly\", \"beginner-friendly\"\n\nExample agent usage:\n\"What activities are there in Rotorua?\"\n\"Find outdoor adventures near Queenstown\"\n\"Indoor activities for kids in Auckland on a rainy day\"\n\"Romantic things to do in Wellington this weekend\"\n\"Free activities near me\"\n\"Best hiking trails around Taupo\"\n\"Family-friendly attractions in Christchurch\"\n\"Beginner-friendly water sports at Mount Maunganui\"\n\"Cultural activities in Wellington today\"\n\"Adrenaline activities for a group in Queenstown\"\n",
+        "method": "POST",
+        "url": "https://api.parallel.ai/v1beta/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "parallel-beta",
+              "value": "search-extract-2025-10-10"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `Find the local activity options that match the users query\n\nYou must use the request format:\n\n{\n  \"objective\": \"Search objective\",\n  \"processor\": \"pro\",\n  \"max_results\": 20,\n  \"max_chars_per_result\": 10000\n}\n\nThe objective should describe what local activity information to find for the destination, dealmaker, activities and dates.`, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2064,
+        112
+      ],
+      "id": "d62077b3-07d3-43e6-b3bc-fbd01d0236e8",
+      "name": "Local Activities Search1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wp8pDceYgFNTt3PJ",
+          "name": "ParallelAI-Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.routing }}",
+                    "rightValue": "Details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6435e461-62f7-4cb5-b2b2-3a1a3fbdf480"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1ba2c45e-b4ab-4e6c-97f4-def514e92d9b",
+                    "leftValue": "={{ $json.routing }}",
+                    "rightValue": "Options_Destinations",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "635d978e-d678-479a-b55a-19ebdb3c519c",
+                    "leftValue": "={{ $json.routing }}",
+                    "rightValue": "Options_Activities",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4015c5c7-157d-4855-9e2e-23a6ad521ca5",
+                    "leftValue": "={{ $json.routing }}",
+                    "rightValue": "Options_Both",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        384,
+        -272
+      ],
+      "id": "c564a6ad-537f-42b5-885a-77b33c5d6090",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "webChat",
+        "chatInputPrompt": "=<request_parameters>\n  <destination>{{ $json.extracted.destination }}</destination>\n  <dates>{{ $json.extracted.date }}</dates>\n  <deal_maker>{{ $json.extracted.deal_maker }}</deal_maker>\n  <activities>{{ $('Code in JavaScript').item.json.extracted.activity }}</activities>\n</request_parameters>\n\nFind and rank the top 3 destinations based on these parameters.\n\n<role>\nYou are a strict Geospatial Travel Expert for New Zealand. Your highest priority is geographical accuracy. You never suggest a location outside the user's requested area.\n</role>\n\n<instructions>\n1. ANALYZE the user's \"Destination\" input:\n   - If specific (e.g., \"South Island\", \"Northland\"), strictly exclude ALL other areas.\n   - If blank or \"New Zealand\", search the entire country.\n   - If a city is named, search only within that city/surrounds.\n\n2. SEARCH for 3 destinations that match:\n   - The geographical constraint (CRITICAL).\n   - The \"Deal Maker\" (primary ranking factor).\n   - The \"Activities\" (secondary ranking factor).\n\n3. VERIFY image URLs:\n   - You must find a real, working URL for an image of the destination. Do not hallucinate links.\n\n4. FORMAT response:\n   - Use the provided JSON schema.\n   - In the \"geo_verification\" field, explicitly state the Island and Region of your chosen town to prove it is valid.\n</instructions>\n\n<constraints>\n- If the user requests \"South Island\", suggesting a \"North Island\" location is a critical failure.\n- If the user requests \"North Island\", suggesting a \"South Island\" location is a critical failure.\n- Justification must be one sentence maximum.\n</constraints>\n",
+        "chatResponseFormat": "json",
+        "chatJsonSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"planning_step\": {\n      \"type\": \"string\",\n      \"description\": \"Briefly analyze the user's specific geo-constraints (e.g., 'User requested South Island only'). Confirm which regions are valid and which are excluded.\"\n    },\n    \"destinations\": {\n      \"type\": \"array\",\n      \"description\": \"Array of exactly 3 destination options that strictly match the requested geo-location.\",\n      \"minItems\": 3,\n      \"maxItems\": 3,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the city or town.\"\n          },\n          \"geo_verification\": {\n            \"type\": \"string\",\n            \"description\": \"The specific Region and Island this town is located in (e.g., 'Otago, South Island'). Used to verify compliance.\"\n          },\n          \"ranking\": {\n            \"type\": \"number\",\n            \"description\": \"Match score out of 5 based on dealmakers and activities.\",\n            \"minimum\": 0,\n            \"maximum\": 5\n          },\n          \"justification\": {\n            \"type\": \"string\",\n            \"description\": \"A one-sentence justification (approx 10-15 words) linking the destination to the user's specific dealmaker.\"\n          },\n          \"image_url\": {\n            \"type\": \"string\",\n            \"description\": \"A valid, direct URL to a representative image found via search.\"\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"geo_verification\",\n          \"ranking\",\n          \"justification\",\n          \"image_url\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\n    \"planning_step\",\n    \"destinations\"\n  ],\n  \"additionalProperties\": false\n}\n",
+        "chatAdditionalOptions": {}
+      },
+      "type": "n8n-nodes-parallel.parallel",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -128
+      ],
+      "id": "4a9d8205-dca8-43f0-8ca9-9dfa7257dc04",
+      "name": "Destination Options",
+      "credentials": {
+        "parallelApi": {
+          "id": "IewTHR3zK20KVIBY",
+          "name": "Parallel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "webChat",
+        "chatInputPrompt": "=<request_parameters>\n  <destination>{{ $('Code in JavaScript').item.json.extracted.destination }}</destination>\n  <dates>{{ $('Code in JavaScript').item.json.extracted.date }}</dates>\n  <deal_maker>{{ $('Code in JavaScript').item.json.extracted.deal_maker }}</deal_maker>\n  <activity_preferences>{{ $('Code in JavaScript').item.json.extracted.activity }}</activity_preferences>\n</request_parameters>\n\nFind and rank the top 3 activities based on these parameters.\n\n<role>\nYou are a strict New Zealand Activity Concierge. You prioritize logistical accuracy over creativity.\n</role>\n\n<instructions>\n1. DEFINE THE GEO-FENCE:\n   - Use the user's \"Destination\" variable to create a strict boundary.\n   - If the user says \"Queenstown\", do NOT suggest \"Wanaka\" (even though they are close).\n   - If the user says \"South Island\", any North Island activity is a failure.\n\n2. CHECK SEASONALITY:\n   - Look at the \"Dates\" provided.\n   - Ensure the activity is viable for that specific time of year (e.g., no skiing in January/Summer).\n\n3. RANKING LOGIC:\n   - Rank 5/5: perfectly matches the \"Deal Maker\" and \"Activity Preference\".\n   - Rank 1/5: loosely matches but is the only option available.\n\n4. OUTPUT FORMAT:\n   - Use the provided JSON schema.\n   - You MUST fill the \"location_verification\" field with the specific address/area of the activity to prove it matches the destination.\n</instructions>\n\n<constraints>\n- Destination flexibility: ZERO.\n- Justification length: Maximum 15 words.\n- Do not hallucinate activities that closed down years ago.\n</constraints>\n",
+        "chatResponseFormat": "json",
+        "chatJsonSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"planning_step\": {\n      \"type\": \"string\",\n      \"description\": \"Analyze the destination constraints and the provided dates. Confirm if the season (Summer/Winter) supports the requested activity types.\"\n    },\n    \"activities\": {\n      \"type\": \"array\",\n      \"description\": \"Array of exactly 3 activity options strictly within the requested destination.\",\n      \"minItems\": 3,\n      \"maxItems\": 3,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Specific name of the activity or tour operator.\"\n          },\n          \"location_verification\": {\n            \"type\": \"string\",\n            \"description\": \"The specific town/suburb where this takes place. Must match user's destination.\"\n          },\n          \"seasonal_check\": {\n            \"type\": \"string\",\n            \"description\": \"Confirm this activity is available/suitable for the user's specific travel dates.\"\n          },\n          \"ranking\": {\n            \"type\": \"number\",\n            \"description\": \"Match score out of 5 based on dealmaker alignment.\",\n            \"minimum\": 0,\n            \"maximum\": 5\n          },\n          \"justification\": {\n            \"type\": \"string\",\n            \"description\": \"Strict 10-15 word justification explaining why this fits the dealmaker.\"\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"location_verification\",\n          \"seasonal_check\",\n          \"ranking\",\n          \"justification\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\n    \"planning_step\",\n    \"activities\"\n  ],\n  \"additionalProperties\": false\n}\n",
+        "chatAdditionalOptions": {}
+      },
+      "type": "n8n-nodes-parallel.parallel",
+      "typeVersion": 1,
+      "position": [
+        624,
+        48
+      ],
+      "id": "a2adb858-b93b-42a3-888b-e16399891318",
+      "name": "Activity Options",
+      "credentials": {
+        "parallelApi": {
+          "id": "IewTHR3zK20KVIBY",
+          "name": "Parallel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "webChat",
+        "chatInputPrompt": "Search return and rank potential destinations and activities in {{ $json.message.content.extracted.destination }}, New Zealand for the dates {{ $json.message.content.extracted.date }} based on the dealmaker {{ $json.message.content.extracted.deal_maker }} and preferred activities {{ $json.message.content.extracted.activity }}. If destination is blank, search all of New Zealand. Return 3 options within the geo requested by the user and give them a ranking out of 5 for how closely they match the users request. Return 3 destination options with 2 suggested activities per destination and give them a ranking out of 5 for how closely the match the users request with a one sentence justifications. The users destination preference is inflexible. Do not suggest activities outside of their preference. If they specify south island, ensure no north island destinations are presented, and vice versa.\n\n\n",
+        "chatResponseFormat": "json",
+        "chatJsonSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"destinations\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the destination\"\n          },\n          \"ranking\": {\n            \"type\": \"number\",\n            \"minimum\": 0,\n            \"maximum\": 5,\n            \"description\": \"Match score out of 5\"\n          },\n          \"justification\": {\n            \"type\": \"string\",\n            \"description\": \"10 word justification\"\n          },\n          \"activities\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"minItems\": 2,\n            \"maxItems\": 2,\n            \"description\": \"2 suggested activities for this destination\"\n          }\n        },\n        \"required\": [\"name\", \"ranking\", \"activities\"]\n      },\n      \"minItems\": 3,\n      \"maxItems\": 3,\n      \"description\": \"Array of 3 destination options with 2 activities each\"\n    }\n  },\n  \"required\": [\"destinations\"],\n  \"additionalProperties\": false\n}\n",
+        "chatAdditionalOptions": {}
+      },
+      "type": "n8n-nodes-parallel.parallel",
+      "typeVersion": 1,
+      "position": [
+        624,
+        240
+      ],
+      "id": "ac10a230-0e19-4d67-a1f7-7cc6ce864ffb",
+      "name": "Both Options",
+      "credentials": {
+        "parallelApi": {
+          "id": "IewTHR3zK20KVIBY",
+          "name": "Parallel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Wondura, an expert local travel guide agent. Your persona is modeled on a New Zealand Department of Conservation (DOC) ranger: knowledgeable, friendly, helpful, authentic, and practical.\n\nYou do not generate generic itineraries. You generate specific, highly practical, and culturally aware travel experience cards.\n\n### INPUT STRUCTURE\nYou will receive user travel queries in the following format:\n\nDestination: {{ $json.extracted.destination }}\nDates: {{ $json.extracted.date }}\nDealmaker: {{ $json.extracted.deal_maker }}\nPreferred Activities: {{ $('On form submission').item.json['Activity 1'] }}{{ $('On form submission').item.json['Activity 2'] }}{{ $('On form submission').item.json['Activity 3'] }}\n\n### TONE OF VOICE GUIDELINES (THE 6 K's)\nYou must strictly adhere to these 6 core voice attributes:\n\n1. **Knowledgeable**: Speak from genuine understanding. Provide context and cite local expertise.\n2. **Kind**: Warm and approachable, never condescending or fake-friendly.\n3. **Konkrete (Practical)**: Specific details, clear information, actionable advice.\n4. **Kredible**: Honest and transparent. Acknowledge limitations or caveats.\n5. **Kultural**: Respectful of local culture, environment, and community. Use correct terminology (e.g., dual place names).\n6. **Klarity**: Plain language, logical organization, no jargon.\n\n### WORKFLOW SEQUENCE\n\n#### Step 1: Vector Store Check\nUse the **Report Checker** tool to search the vector store for existing destination knowledge.\n- **Vector Store Contains**: Foundational destination information, cultural insights, historical recommendations, and evergreen travel wisdom.\n- **Vector Store Does NOT Contain**: Live weather, current events, or real-time availability.\n- *Goal*: Establish the \"Knowledgeable\" and \"Kultural\" foundation of the response.\n\n#### Step 2: Real-Time Data Enhancement (ALWAYS EXECUTE CONCURRENTLY)\nUse specialized search tools to gather the \"Konkrete\" details required for the DOC-style voice:\n- **Weather Search**: For specific packing advice (e.g., \"layers recommended for the afternoon wind\").\n- **Local Events Search**: For community gatherings occurring *specifically* during travel dates.\n- **Food and Dining Search**: To confirm *current* operating hours (e.g., \"Kitchen closes at 8pm sharp\").\n- **Local Activities Search**: To find booking availability and current pricing.\n\n**IMPORTANT**: Always execute all search tools. The \"DOC Ranger\" voice relies on accuracy. You cannot be \"Helpful\" if your practical details are outdated.\n\n#### Step 3: Generate Travel Experience Cards (FINAL OUTPUT)\nCreate exactly 3 travel experience cards in JSON format.\n\n**Content Structure (The PEROT Principle)**:\nEvery card description must follow this flow:\n1. **Hook**: One sentence capturing what makes this special.\n2. **Context**: Why locals value this (history/culture).\n3. **Practical**: Specifics on hours, location, cost, accessibility.\n4. **Insight**: What makes it authentically local.\n5. **Consider**: A helpful caveat or alternative (e.g., \"Busy on weekends; try Tuesday mornings\").\n\n**JSON Output Format**:\n[\n{\n\"card_title\": \"Clear, descriptive title (No clickbait)\",\n\"experience_description\": \"Friendly, knowledgeable description following the Hook -> Context -> Insight flow.\n\"practical_logistics\": \"Seamless integration of booking details, timing, cost estimates, and safety info (e.g., 'Open Tues-Sun, 10am-4pm. $25 entry.')\",\n}\n]\n\ntext\n\n### WRITING STANDARDS & CONSTRAINTS\n\n**Language Patterns to AVOID (Strictly Prohibited):**\n- ❌ **No Clichés**: \"Hidden gem,\" \"off the beaten path,\" \"must-see,\" \"bucket list,\" \"best kept secret.\"\n- ❌ **No Hyperbole**: \"Amazing!!\", \"Epic,\" \"Mind-blowing,\" \"The best X in the world.\"\n- ❌ **No Marketing Speak**: \"Experience the magic,\" \"Unforgettable journey.\"\n- ❌ **No Stereotypes**: Do not use caricatures of local dialects.\n\n**Language Patterns to USE:**\n- ✅ **Contextual**: \"Worth considering if you're interested in...\"\n- ✅ **Local**: \"Neighborhood favorite,\" \"Family-run since [year],\" \"Locals gather here for...\"\n- ✅ **Specific**: \"The 15-minute walk,\" \"The west-facing windows catch the afternoon light.\"\n- ✅ **Measured**: \"Popular with visitors, but valued by locals for...\"\n\n**Grammar & Mechanics:**\n- **Sentence Length**: Keep sentences concise (15-20 words average).\n- **Voice**: Active voice (\"Locals use this path,\" NOT \"This path is used by locals\").\n- **Punctuation**: Maximum ONE exclamation mark per card.\n- **Cultural Respect**: Use official dual place names where applicable.\n\n### CRITICAL REMINDERS\n- Always use Report Checker first.\n- Wait for complete status from Core Wondura Engine.\n- Always use real-time search tools to ensure \"Konkrete\" accuracy.\n- Generate exactly 3 cards.\n- **Maintain the persona**: You are a helpful guide, not a hype-man. If a location has a downside (e.g., difficult parking, long wait times), mention it politely. This builds \"Kredibility.\"",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1312,
+        -288
+      ],
+      "id": "a95aba0f-1a38-4a2e-9438-aa87fd46e845",
+      "name": "Wondura Agent v3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        -16
+      ],
+      "id": "7f538d7d-83f5-41ca-9e2a-d855b005811a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "r8gw9Oiv3dd34fd2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through input items\nreturn items.map(item => {\n  try {\n    // 1. Navigate the deep nested structure to find the text string\n    // Path: candidates[0] -> content -> parts[0] -> text\n    const rawText = item.json.candidates[0].content.parts[0].text;\n\n    // 2. Clean the text\n    // Removes \"``````\", and extra whitespace just in case the model added them\n    const cleanText = rawText.replace(/``````/g, '').trim();\n\n    // 3. Parse the string into an actual JSON object\n    const parsedJson = JSON.parse(cleanText);\n\n    // 4. Return the clean data\n    return {\n      json: parsedJson\n    };\n\n  } catch (error) {\n    // Error handling: return the error and original text if parsing fails\n    return {\n      json: {\n        error: \"Could not parse JSON\",\n        message: error.message,\n        raw_output: item.json.candidates?.[0]?.content?.parts?.[0]?.text || \"No text found\"\n      }\n    };\n  }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -240
+      ],
+      "id": "a8bf5a25-af8e-4c6d-a8e7-f912dce3275f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool Name: Price Verification Tool\n\nAutonomous agent tool for verifying product or service pricing against live web data. This tool performs a targeted search for a specific product/service URL, extracts the current listed price, and compares it against a reference value (e.g., internal database or invoice). It returns a structured verification object confirming whether the price matches, including a confidence score, the specific HTML selector or text snippet used for verification, and a timestamped snapshot of the pricing data. Use this for audit trails, competitive monitoring, or invoice validation where financial accuracy is non-negotiable.\n",
+        "method": "POST",
+        "url": "https://api.parallel.ai/v1beta/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "parallel-beta",
+              "value": "search-extract-2025-10-10"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `Find and verify current pricing information matching the users query\n\nYou must use the request format:\n\n{\n  \"objective\": \"Search objective\",\n  \"processor\": \"pro\",\n  \"max_results\": 5,\n  \"max_chars_per_result\": 10000\n}\n\nThe objective should explicitly state the product or service name to search for, the specific URL (if known), and the expected price to verify. It should instruct the scraper to ignore ads and focus on the primary list price or current offer price for the specified dates.\n`, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2416,
+        32
+      ],
+      "id": "cfa18124-0717-4563-89a6-a73d9c9b968b",
+      "name": "Price Verification Tool",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wp8pDceYgFNTt3PJ",
+          "name": "ParallelAI-Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool Name: Venue Verification Tool\n\nAutonomous verification tool for assessing venue viability and logistical fit. This tool takes a candidate venue and the user's itinerary constraints (dates, location, opening hours) and performs a real-time validation check. It confirms the venue's existence, operational status for the specific dates requested, and proximity to the user's base location. Use this to prevent hallucinations where agents recommend permanently closed businesses, venues with conflicting seasonal hours, or locations that are geographically impossible (e.g., a 'nearby' cafe that is actually 4 hours away)\n",
+        "method": "POST",
+        "url": "https://api.parallel.ai/v1beta/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "parallel-beta",
+              "value": "search-extract-2025-10-10"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `Verify if a candidate venue is appropriate, open, and logistically viable for the user's request\n\nYou must use the request format:\n\n{\n  \"objective\": \"Search objective\",\n  \"processor\": \"pro\",\n  \"max_results\": 3,\n  \"max_chars_per_result\": 5000\n}\n\nThe objective should strictly command the scraper to:\n1. Confirm the venue exists and is currently trading (not permanently closed).\n2. Find the opening hours for the specific dates provided in the user's query.\n3. Calculate the travel distance/time from the user's base location to the venue.\n4. Flag any major logistical red flags (e.g., \"Renovations\", \"Winter Closure\").\n`, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2608,
+        32
+      ],
+      "id": "35183fb6-bdf0-4af8-834b-be23b4fe7c78",
+      "name": "Venue Verification Tool",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wp8pDceYgFNTt3PJ",
+          "name": "ParallelAI-Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-lite"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a travel input classifier for a recommendation engine. Your task is to analyze user inputs and classify three dimensions: What (activity/trip type), Where (destination), and When (date/timeframe).\n\n### CLASSIFICATION RULES\n\n**CLEAR**: Specific, actionable information provided.\n- What: Specific activity (e.g., \"wine tasting\", \"skiing\"). If a dealmaker is present, treat intent as Clear.\n- Where: Named location (e.g., \"Napier\", \"Queenstown\").\n- When: Specific date or concrete timeframe (e.g., \"25 Oct\", \"This weekend\").\n\n**VAGUE**: General or imprecise information.\n- What: Broad categories (e.g., \"fun\", \"relaxing\", \"romantic\").\n- Where: Distance/travel time (e.g., \"3hrs from AKL\", \"North Island\").\n- When: General timeframe (e.g., \"Next month\", \"Winter\", \"Soon\").\n\n**BLANK**: Missing, empty, or null.\n\n### ROUTING LOGIC (Strict Priority)\n\n1. **Unknown**: If ALL parameters (What, Where, When) are Blank.\n2. **Details**: If What is Clear AND Where is Clear.\n3. **Options_Destinations**: If What is Clear AND Where is NOT Clear (Vague or Blank).\n4. **Options_Activities**: If Where is Clear AND What is NOT Clear (Vague or Blank).\n5. **Options_Both**: If Where is NOT Clear (Vague/Blank) AND What is NOT Clear (Vague/Blank). (Use this when the user gives input, but neither activity nor destination is specific).\n\n### USER INPUT TO ANALYZE\nWhere to: {{ $json['Where to?'] }}\nWhen: {{ $json['When?'] }}\nActivities: {{ $json['Activity 1'] }}, {{ $json['Activity 2'] }}, {{ $json['Activity 3'] }}\nDealmaker: {{ $json.Dealmaker }}\nContext: User in New Zealand. Date: {{ $json.submittedAt }}\n\n### OUTPUT INSTRUCTIONS\nReturn ONLY valid, raw JSON. \n- Do NOT use markdown formatting (no ```\n- Do NOT include explanations or preambles.\n- Ensure the \"routing\" value matches exactly one of the 5 options defined in the logic above.\n\nJSON Structure:\n{\n  \"what\": \"Clear|Vague|Blank\",\n  \"where\": \"Clear|Vague|Blank\",\n  \"when\": \"Clear|Vague|Blank\",\n  \"routing\": \"Details|Options_Destinations|Options_Activities|Options_Both|Unknown\",\n  \"extracted\": {\n    \"activity\": \"normalized activity name or null\",\n    \"destination\": \"normalized destination name (max detail) or null\",\n    \"date\": \"ISO date YYYY-MM-DD or timeframe description or null\",\n    \"deal_maker\": \"extracted preference or null\"\n  }\n}\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -240
+      ],
+      "id": "ff3ec353-aa60-4940-b740-ae7903a39b94",
+      "name": "Gemini Router",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "r8gw9Oiv3dd34fd2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Gemini Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Events Search2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Food and Dining Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Activities Search1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Destination Options",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Activity Options",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Destination Options",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    "Wondura Agent v3": {
+      "main": [
+        []
+      ]
+    },
+    "Destination Options": {
+      "main": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Price Verification Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Venue Verification Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Router": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activity Options": {
+      "main": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Both Options": {
+      "main": [
+        [
+          {
+            "node": "Wondura Agent v3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a7c9d3b8-9ba8-44fc-a7e3-a8666173af30",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6449ceb0640564629ed0ad64273ca621585b502943abfc955ef788181c544391"
+  },
+  "id": "uf5deARr8YZBPA67",
+  "tags": []
+}
