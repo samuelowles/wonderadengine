@@ -78,7 +78,7 @@ Dealmaker: ${dealmaker || 'Not specified'}
         // Call Gemini Flash for classification
         const apiKey = context.env.GOOGLE_AI_KEY;
         if (!apiKey) {
-            throw new Error('GOOGLE_AI_KEY not configured');
+            throw new Error(`GOOGLE_AI_KEY not configured. Available keys: ${Object.keys(context.env).join(', ')}`);
         }
 
         const response = await callGemini(
