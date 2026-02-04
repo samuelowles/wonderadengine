@@ -4,6 +4,8 @@ import { getWeather } from './tools/weather';
 import { getEvents } from './tools/events';
 import { getDining } from './tools/dining';
 import { getActivities } from './tools/activities';
+import { verifyPrice } from './tools/price';
+import { verifyVenue } from './tools/venue';
 
 // Request schema
 const RoutingResultSchema = z.object({
@@ -88,19 +90,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 const parallelKey = context.env.PARALLEL_API_KEY;
 
                 // Execute tools concurrently (with fallbacks if PARALLEL_API_KEY not set)
-                let toolData: { weather: unknown; events: unknown; dining: unknown; activities: unknown } = {
-                    weather: null, events: null, dining: null, activities: null
+                let toolData: { weather: unknown; events: unknown; dining: unknown; activities: unknown; price: unknown; venue: unknown } = {
+                    weather: null, events: null, dining: null, activities: null, price: null, venue: null
                 };
 
                 if (parallelKey && parallelKey !== 'your_parallel_api_key_here') {
                     try {
-                        const [weatherData, eventsData, diningData, activitiesData] = await Promise.all([
+                        const [weatherData, eventsData, diningData, activitiesData, priceData, venueData] = await Promise.all([
                             getWeather(location, dates, parallelKey).catch(e => ({ error: e.message })),
                             getEvents(location, dates, parallelKey).catch(e => ({ error: e.message })),
                             getDining(location, '', parallelKey).catch(e => ({ error: e.message })),
                             getActivities(location, activities, parallelKey).catch(e => ({ error: e.message })),
+                            verifyPrice('General Costs', 'N/A', null, parallelKey).catch(e => ({ error: e.message })),
+                            verifyVenue(location, 'New Zealand', dates, parallelKey).catch(e => ({ error: e.message })),
                         ]);
-                        toolData = { weather: weatherData, events: eventsData, dining: diningData, activities: activitiesData };
+                        toolData = { weather: weatherData, events: eventsData, dining: diningData, activities: activitiesData, price: priceData, venue: venueData };
                     } catch (e) {
                         console.error('Tool execution error:', e);
                     }
@@ -120,6 +124,8 @@ Tool Data (Weather): ${JSON.stringify(toolData.weather) || 'Unavailable'}
 Tool Data (Events): ${JSON.stringify(toolData.events) || 'Unavailable'}
 Tool Data (Dining): ${JSON.stringify(toolData.dining) || 'Unavailable'}
 Tool Data (Activities): ${JSON.stringify(toolData.activities) || 'Unavailable'}
+Tool Data (Price): ${JSON.stringify(toolData.price) || 'Unavailable'}
+Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
 `;
 
                 // Call Gemini Pro for experience cards
@@ -127,7 +133,7 @@ Tool Data (Activities): ${JSON.stringify(toolData.activities) || 'Unavailable'}
                     apiKey,
                     WONDURA_PROMPT,
                     userContext,
-                    { model: 'gemini-2.5-flash', temperature: 0.4, maxOutputTokens: 4096 }
+                    { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096 }
                 );
 
                 // Parse response and send cards
