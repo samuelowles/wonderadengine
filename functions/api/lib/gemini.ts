@@ -54,19 +54,34 @@ export async function callGemini(
 
 // Extract JSON from Gemini response (handles markdown code blocks)
 export function extractJson<T>(text: string): T {
+    const trimmed = text.trim();
+
     // Try to find JSON in code blocks first
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const codeBlockMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlockMatch) {
-        return JSON.parse(codeBlockMatch[1].trim());
+        try {
+            return JSON.parse(codeBlockMatch[1].trim());
+        } catch (e) {
+            console.error('Failed to parse JSON from code block', e);
+        }
     }
 
-    // Try to parse entire response as JSON
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    // Try to find the first '{' or '[' and match to the last '}' or ']'
+    const jsonMatch = trimmed.match(/([\[\{][\s\S]*[\]\}])/);
     if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        try {
+            return JSON.parse(jsonMatch[1]);
+        } catch (e) {
+            console.error('Failed to parse regex-matched JSON', e);
+        }
     }
 
-    throw new Error('No valid JSON found in response');
+    // Last resort: try to parse the entire trimmed text
+    try {
+        return JSON.parse(trimmed);
+    } catch (e) {
+        throw new Error('No valid JSON found in response');
+    }
 }
 
 // Streaming version for agent endpoint
