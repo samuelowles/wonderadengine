@@ -7,7 +7,7 @@ interface TypographyProps {
 
 export function Heading({ children, className = '' }: TypographyProps) {
     return (
-        <h2 className={`font-serif text-4xl md:text-5xl font-semibold tracking-tight text-primary ${className}`}>
+        <h2 className={`font-display text-display-lg font-bold tracking-tight text-text-primary ${className}`}>
             {children}
         </h2>
     );
@@ -15,7 +15,7 @@ export function Heading({ children, className = '' }: TypographyProps) {
 
 export function Subheading({ children, className = '' }: TypographyProps) {
     return (
-        <h3 className={`font-serif text-2xl font-medium text-primary ${className}`}>
+        <h3 className={`font-display text-display-md font-semibold text-text-primary ${className}`}>
             {children}
         </h3>
     );
@@ -23,7 +23,7 @@ export function Subheading({ children, className = '' }: TypographyProps) {
 
 export function Body({ children, className = '' }: TypographyProps) {
     return (
-        <p className={`font-sans text-base leading-relaxed text-secondary ${className}`}>
+        <p className={`font-body text-body leading-relaxed text-text-secondary ${className}`}>
             {children}
         </p>
     );
@@ -31,7 +31,15 @@ export function Body({ children, className = '' }: TypographyProps) {
 
 export function Caption({ children, className = '' }: TypographyProps) {
     return (
-        <span className={`font-sans text-xs uppercase tracking-wider font-medium text-secondary ${className}`}>
+        <span className={`font-body text-caption uppercase tracking-wider font-medium text-text-muted ${className}`}>
+            {children}
+        </span>
+    );
+}
+
+export function Label({ children, className = '' }: TypographyProps) {
+    return (
+        <span className={`font-body text-body-sm font-medium text-text-primary ${className}`}>
             {children}
         </span>
     );

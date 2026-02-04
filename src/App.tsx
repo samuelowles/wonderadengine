@@ -4,7 +4,7 @@ import { ResultsFeed } from './components/features/ResultsFeed'
 import { OptionsList } from './components/features/OptionCard'
 import { useWondura } from './hooks/useWondura'
 import { Button } from './components/ui/Button'
-import { Heading, Body } from './components/ui/Typography'
+import { Heading, Body, Caption } from './components/ui/Typography'
 
 function App() {
     const {
@@ -22,7 +22,7 @@ function App() {
             {/* Back button when not on form */}
             {phase !== 'form' && (
                 <div className="mb-6">
-                    <Button variant="secondary" onClick={reset}>
+                    <Button variant="ghost" size="sm" onClick={reset}>
                         ← New Search
                     </Button>
                 </div>
@@ -39,18 +39,23 @@ function App() {
             {/* Loading View */}
             {phase === 'loading' && (
                 <div className="flex flex-col items-center justify-center py-20">
-                    <div className="w-12 h-12 border-4 border-brand-forest border-t-transparent rounded-full animate-spin mb-4" />
-                    <Heading className="text-2xl mb-2">Finding Your Experience</Heading>
-                    <Body>This may take a moment...</Body>
+                    <div className="w-12 h-12 border-3 border-brand-accent border-t-transparent rounded-full animate-spin mb-6" />
+                    <Heading className="text-display-md mb-2">Finding Your Experience</Heading>
+                    <Body>Searching local knowledge...</Body>
                 </div>
             )}
 
             {/* Results View (Streaming Experience Cards) */}
             {phase === 'results' && routingResult && (
                 <div>
-                    <Heading className="text-2xl mb-6">
-                        Experiences in {routingResult.extracted.destination || 'New Zealand'}
-                    </Heading>
+                    <div className="mb-8">
+                        <Heading className="mb-2">
+                            Experiences in {routingResult.extracted.destination || 'New Zealand'}
+                        </Heading>
+                        <Caption>
+                            Curated by local knowledge
+                        </Caption>
+                    </div>
                     <ResultsFeed routingResult={routingResult} />
                 </div>
             )}

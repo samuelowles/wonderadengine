@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card } from '../ui/Card';
+import { ImageCard, Card } from '../ui/Card';
 import { Subheading, Body, Caption } from '../ui/Typography';
 import type { ExperienceCard } from '../../shared/schema';
 import type { RoutingResult } from '../../shared/schema';
@@ -7,6 +7,12 @@ import type { RoutingResult } from '../../shared/schema';
 interface ResultsFeedProps {
     routingResult: RoutingResult;
 }
+
+// Cycle through available card images
+const cardImages = [
+    '/img/hero-sunrise.jpg',
+    '/img/card-thumbnail.jpg',
+];
 
 export function ResultsFeed({ routingResult }: ResultsFeedProps) {
     const [cards, setCards] = useState<ExperienceCard[]>([]);
@@ -55,7 +61,7 @@ export function ResultsFeed({ routingResult }: ResultsFeedProps) {
                             } else if (event === 'error') {
                                 setError(data.error);
                             } else if (event === 'done') {
-                                setStatus('Complete');
+                                setStatus('');
                             }
                         }
                     }
@@ -70,40 +76,56 @@ export function ResultsFeed({ routingResult }: ResultsFeedProps) {
 
     if (error) {
         return (
-            <Card className="border-brand-clay">
-                <Subheading className="text-brand-clay">Something went wrong</Subheading>
-                <Body>{error}</Body>
+            <Card className="border-red-200 bg-red-50">
+                <Subheading className="text-red-700 mb-2">Something went wrong</Subheading>
+                <Body className="text-red-600">{error}</Body>
             </Card>
         );
     }
 
     return (
         <div className="space-y-6">
+            {/* Loading State */}
             {status && (
-                <div className="flex items-center gap-3 text-secondary">
-                    <div className="w-4 h-4 border-2 border-brand-forest border-t-transparent rounded-full animate-spin" />
-                    <Caption>{status}</Caption>
+                <div className="flex items-center gap-3 py-4">
+                    <div className="w-5 h-5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
+                    <Caption className="text-text-secondary">{status}</Caption>
                 </div>
             )}
 
+            {/* Experience Cards */}
             {cards.map((card, index) => (
-                <Card key={index} className="transition-all animate-in fade-in slide-in-from-bottom-4">
-                    <Subheading className="mb-2">{card.card_title}</Subheading>
+                <ImageCard
+                    key={index}
+                    imageSrc={cardImages[index % cardImages.length]}
+                    imageAlt={card.card_title}
+                    hoverable
+                    className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                >
+                    <Subheading className="mb-3">{card.card_title}</Subheading>
 
-                    <div className="space-y-4">
-                        <Body className="text-primary leading-relaxed whitespace-pre-wrap">
-                            {card.experience_description}
-                        </Body>
+                    <Body className="mb-4 leading-relaxed">
+                        {card.experience_description}
+                    </Body>
 
-                        <div className="pt-3 border-t border-brand-mist">
-                            <Caption className="text-brand-clay font-bold mb-1">Practical Logistics</Caption>
-                            <Body className="text-secondary text-sm bg-brand-mist/20 p-3 rounded-md">
-                                {card.practical_logistics}
-                            </Body>
-                        </div>
+                    {/* Practical Logistics */}
+                    <div className="pt-4 border-t border-border-subtle">
+                        <Caption className="block mb-2 text-brand-accent">Practical Details</Caption>
+                        <p className="font-body text-body-sm text-text-secondary leading-relaxed">
+                            {card.practical_logistics}
+                        </p>
                     </div>
-                </Card>
+                </ImageCard>
             ))}
+
+            {/* Completion Message */}
+            {cards.length > 0 && !status && (
+                <div className="text-center py-4">
+                    <Caption className="text-text-muted">
+                        {cards.length} experience{cards.length !== 1 ? 's' : ''} found
+                    </Caption>
+                </div>
+            )}
         </div>
     );
 }
