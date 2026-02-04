@@ -70,7 +70,7 @@ Recommend 2 destinations with 2 activities each.
             apiKey,
             BOTH_PROMPT,
             userMessage,
-            { model: 'gemini-1.5-flash', temperature: 0.2 }
+            { model: 'gemini-2.5-flash', temperature: 0.2 }
         );
 
         const result = extractJson(response);

@@ -112,7 +112,7 @@ Tool Data (Activities): ${JSON.stringify(toolData.activities) || 'Unavailable'}
                     apiKey,
                     WONDURA_PROMPT,
                     userContext,
-                    { model: 'gemini-1.5-pro', temperature: 0.4, maxOutputTokens: 4096 }
+                    { model: 'gemini-2.5-flash', temperature: 0.4, maxOutputTokens: 4096 }
                 );
 
                 // Parse response and send cards

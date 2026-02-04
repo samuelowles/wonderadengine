@@ -85,7 +85,7 @@ Dealmaker: ${dealmaker || 'Not specified'}
             apiKey,
             CLASSIFIER_PROMPT,
             userMessage,
-            { model: 'gemini-1.5-flash', temperature: 0.0 }
+            { model: 'gemini-2.5-flash', temperature: 0.0 }
         );
 
         // Parse and validate the response

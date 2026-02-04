@@ -4,7 +4,7 @@ const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models
 
 
 interface GeminiConfig {
-    model: 'gemini-1.5-flash' | 'gemini-1.5-pro';
+    model: 'gemini-2.5-flash' | 'gemini-1.5-flash' | 'gemini-1.5-pro';
     temperature?: number;
     maxOutputTokens?: number;
 }
