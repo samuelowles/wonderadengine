@@ -24,11 +24,8 @@ export const RoutingResultSchema = z.object({
 // Experience Card Schema - agent output
 export const ExperienceCardSchema = z.object({
     card_title: z.string(),
-    hook: z.string(),
-    context: z.string(),
-    practical: z.string(),
-    insight: z.string(),
-    consider: z.string(),
+    experience_description: z.string(),
+    practical_logistics: z.string(),
 });
 
 // Option Item Schema - for destinations/activities

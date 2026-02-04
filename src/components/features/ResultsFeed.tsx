@@ -89,27 +89,17 @@ export function ResultsFeed({ routingResult }: ResultsFeedProps) {
             {cards.map((card, index) => (
                 <Card key={index} className="transition-all animate-in fade-in slide-in-from-bottom-4">
                     <Subheading className="mb-2">{card.card_title}</Subheading>
-                    <Body className="text-primary font-medium mb-4">{card.hook}</Body>
 
-                    <div className="space-y-3">
-                        <div>
-                            <Caption>Why Locals Love It</Caption>
-                            <Body className="mt-1">{card.context}</Body>
-                        </div>
-
-                        <div>
-                            <Caption>Practical Details</Caption>
-                            <Body className="mt-1">{card.practical}</Body>
-                        </div>
-
-                        <div>
-                            <Caption>Local Insight</Caption>
-                            <Body className="mt-1">{card.insight}</Body>
-                        </div>
+                    <div className="space-y-4">
+                        <Body className="text-primary leading-relaxed whitespace-pre-wrap">
+                            {card.experience_description}
+                        </Body>
 
                         <div className="pt-3 border-t border-brand-mist">
-                            <Caption className="text-brand-clay">Consider</Caption>
-                            <Body className="mt-1 text-secondary">{card.consider}</Body>
+                            <Caption className="text-brand-clay font-bold mb-1">Practical Logistics</Caption>
+                            <Body className="text-secondary text-sm bg-brand-mist/20 p-3 rounded-md">
+                                {card.practical_logistics}
+                            </Body>
                         </div>
                     </div>
                 </Card>
