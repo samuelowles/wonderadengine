@@ -66,7 +66,7 @@ Recommend 3 best destinations.
             apiKey,
             DESTINATIONS_PROMPT,
             userMessage,
-            { model: 'gemini-2.5-flash', temperature: 0.2 }
+            { model: 'gemini-3-flash-preview', temperature: 0.2 }
         );
 
         interface DestinationsResponse {

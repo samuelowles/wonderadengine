@@ -114,7 +114,7 @@ export function MetricLabel({ children, className = '' }: TypographyProps) {
 export const Heading = H1;
 export const Subheading = H2;
 export const SectionHeader = ({ children, className = '' }: TypographyProps) => (
-    <div className={`font-body text-caption uppercase text-text-muted tracking-widest mb-[16px] ${className}`}>
+    <div className={`font-body text-caption uppercase text-text-muted mb-[16px] ${className}`}>
         {children}
     </div>
 );

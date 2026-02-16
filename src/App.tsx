@@ -1,11 +1,9 @@
-import { Layout, ImmersiveLayout } from './components/layout/Layout'
+import { Layout, ImmersiveLayout, HeroBgLayout } from './components/layout/Layout'
 import { FormFlow } from './components/features/FormFlow'
 import { ResultsFeed } from './components/features/ResultsFeed'
 import { OptionsList } from './components/features/OptionCard'
 import { useWondura } from './hooks/useWondura'
-import { Button } from './components/ui/Button'
-import { H1, HeroTitle, Caption, BodySmall } from './components/ui/Typography'
-import { ArrowLeft } from './components/ui/Icons'
+import { HeroTitle, Caption, BodySmall } from './components/ui/Typography'
 
 function App() {
     const {
@@ -18,7 +16,7 @@ function App() {
         reset
     } = useWondura();
 
-    /* ── Form ── uses OverlayLayout (inside FormFlow) */
+    /* ── Form ── 9:16 card on full background */
     if (phase === 'form') {
         return (
             <FormFlow
@@ -28,7 +26,7 @@ function App() {
         );
     }
 
-    /* ── Loading ── Immersive with dimmed hero + spinner */
+    /* ── Loading ── Immersive with spinner */
     if (phase === 'loading') {
         return (
             <ImmersiveLayout imageSrc="/img/hero-loading.jpg">
@@ -41,40 +39,26 @@ function App() {
         );
     }
 
-    /* ── Results ── Standard Layout with bottom nav */
+    /* ── Results ── Cards on single hero background */
     if (phase === 'results' && routingResult) {
+        const destination = routingResult.extracted.destination || 'New Zealand';
         return (
-            <Layout>
-                <div className="mb-[8px]">
-                    <Button variant="ghost" size="sm" onClick={reset} className="mb-[16px] -ml-[8px]">
-                        <ArrowLeft size={16} className="mr-[6px]" />
-                        New Search
-                    </Button>
-                </div>
-
+            <HeroBgLayout imageSrc="/img/hero-detail.jpg" onBack={reset}>
                 <div className="mb-[24px]">
-                    <H1>Your Experiences</H1>
-                    <BodySmall className="mt-[4px]">
-                        {routingResult.extracted.destination || 'New Zealand'}
+                    <HeroTitle className="mb-[4px]">{destination}</HeroTitle>
+                    <BodySmall className="text-white/50">
+                        {routingResult.extracted.date || 'Your curated experiences'}
                     </BodySmall>
                 </div>
-
-                <ResultsFeed routingResult={routingResult} onBack={reset} />
-            </Layout>
+                <ResultsFeed routingResult={routingResult} />
+            </HeroBgLayout>
         );
     }
 
-    /* ── Options ── Standard Layout with bottom nav */
+    /* ── Options ── Standard layout, no bottom nav */
     if (phase === 'options') {
         return (
-            <Layout>
-                <div className="mb-[8px]">
-                    <Button variant="ghost" size="sm" onClick={reset} className="mb-[16px] -ml-[8px]">
-                        <ArrowLeft size={16} className="mr-[6px]" />
-                        New Search
-                    </Button>
-                </div>
-
+            <Layout onBack={reset}>
                 <OptionsList
                     title={`Recommended ${routingResult?.routing.includes('Dest') ? 'Destinations' : 'Options'}`}
                     options={options}

@@ -35,8 +35,15 @@ You must strictly adhere to these 6 core voice attributes:
 6. **Klarity**: Plain language, logical organization, no jargon.
 
 ### WORKFLOW SEQUENCE
-1. **Analyze Tool Data**: Use the provided weather, events, and dining info to add "Konkrete" accuracy.
+1. **Analyze Tool Data**: Use ALL provided tool data to add "Konkrete" accuracy.
+   - **Weather Data**: For packing advice and activity suitability.
+   - **Events Data**: For community gatherings during travel dates.
+   - **Dining Data**: For confirmed operating hours and menu info.
+   - **Activities Data**: For booking availability and current pricing.
+   - **Price Verification**: Cross-check any prices mentioned in your cards against verified pricing data. If price data is available, use it.
+   - **Venue Verification**: Check that any venue you recommend is confirmed open and operational. Flag red flags (closures, renovations) in the "Consider" section.
 2. **Generate Cards**: Create exactly 3 travel experience cards.
+3. **Verify Before Outputting**: Do NOT recommend a venue that Venue Verification flagged as closed. Do NOT cite a price that Price Verification contradicts.
 
 ### CONTENT STRUCTURE (The PEROT Principle)
 Every card description must follow this flow:
@@ -96,13 +103,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
                 if (parallelKey && parallelKey !== 'your_parallel_api_key_here') {
                     try {
+                        const dealmaker = extracted.deal_maker || '';
                         const [weatherData, eventsData, diningData, activitiesData, priceData, venueData] = await Promise.all([
-                            getWeather(location, dates, parallelKey).catch(e => ({ error: e.message })),
-                            getEvents(location, dates, parallelKey).catch(e => ({ error: e.message })),
-                            getDining(location, '', parallelKey).catch(e => ({ error: e.message })),
-                            getActivities(location, activities, parallelKey).catch(e => ({ error: e.message })),
-                            verifyPrice('General Costs', 'N/A', null, parallelKey).catch(e => ({ error: e.message })),
-                            verifyVenue(location, 'New Zealand', dates, parallelKey).catch(e => ({ error: e.message })),
+                            getWeather(location, dates, parallelKey, dealmaker, activities).catch(e => ({ error: e.message })),
+                            getEvents(location, dates, parallelKey, dealmaker, activities).catch(e => ({ error: e.message })),
+                            getDining(location, '', parallelKey, dealmaker, activities).catch(e => ({ error: e.message })),
+                            getActivities(location, activities, parallelKey, dealmaker, dates).catch(e => ({ error: e.message })),
+                            verifyPrice(`${activities || 'travel'} experiences in ${location}`, 'N/A', null, parallelKey, dates).catch(e => ({ error: e.message })),
+                            verifyVenue(location, location, dates, parallelKey).catch(e => ({ error: e.message })),
                         ]);
                         toolData = { weather: weatherData, events: eventsData, dining: diningData, activities: activitiesData, price: priceData, venue: venueData };
                     } catch (e) {

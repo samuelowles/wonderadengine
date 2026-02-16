@@ -1,6 +1,4 @@
 import React from 'react';
-import { MetricValueSmall, MetricLabel, BodyXS } from './Typography';
-import { StarFilled, PlusCircle, Pencil } from './Icons';
 
 /* ════════════════════════════════════════════
    Base Card
@@ -30,121 +28,54 @@ export function Card({ children, className = '', hoverable = false, onClick }: C
 }
 
 /* ════════════════════════════════════════════
-   Activity Card (Screen 1 Pattern)
-   ════════════════════════════════════════════
-   ┌──────────────────────────────────────┐
-   │                              ★ badge │
-   │  Title                        ┌────┐ │
-   │  Metadata                     │ img│ │
-   │                               │    │ │
-   │  Distance   Pace     Time     │    │ │
-   │  (labels)   (labels) (labels) └────┘ │
-   │  ┌──────┐  ┌──────┐                 │
-   │  │⊕ Save│  │✎ View│                 │
-   │  └──────┘  └──────┘                 │
-   └──────────────────────────────────────┘ */
+   Experience Card — Content-visible card
+   Shows title, description, and practical details
+   directly on the card (v1 style).
+   ════════════════════════════════════════════ */
 
-interface MetricItem {
-    label: string;
-    value: string;
-}
-
-interface ActivityCardProps {
+interface ExperienceCardProps {
     title: string;
-    metadata: string;
-    metrics: MetricItem[];
-    imageSrc: string;
-    pinned?: boolean;
-    onSave?: () => void;
-    onClick?: () => void;
+    description: string;
+    practicalDetails: string;
     animationDelay?: number;
 }
 
-export function ActivityCard({
+export function ExperienceCard({
     title,
-    metadata,
-    metrics,
-    imageSrc,
-    pinned = false,
-    onSave,
-    onClick,
+    description,
+    practicalDetails,
     animationDelay = 0,
-}: ActivityCardProps) {
+}: ExperienceCardProps) {
     return (
         <div
             className="opacity-0 animate-slide-up"
             style={{ animationDelay: `${animationDelay}ms` }}
         >
-            <Card hoverable onClick={onClick} className="relative overflow-hidden">
-                <div className="flex">
-                    {/* Left content area */}
-                    <div className="flex-1 p-[20px] pr-[16px] flex flex-col justify-between min-h-[180px]">
-                        {/* Title & meta */}
-                        <div>
-                            <h3 className="font-display text-h3 text-text-primary mb-[4px] pr-[8px] line-clamp-2">
-                                {title}
-                            </h3>
-                            <BodyXS>{metadata}</BodyXS>
-                        </div>
-
-                        {/* Metric row */}
-                        {metrics.length > 0 && (
-                            <div className="flex gap-[24px] mt-[12px]">
-                                {metrics.map((m, i) => (
-                                    <div key={i} className="flex flex-col">
-                                        <MetricValueSmall>{m.value}</MetricValueSmall>
-                                        <MetricLabel className="mt-[2px]">{m.label}</MetricLabel>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Action pills */}
-                        <div className="flex gap-[8px] mt-[16px]">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onSave?.(); }}
-                                className="inline-flex items-center gap-[6px] h-[32px] px-[14px] rounded-button bg-surface-elevated border border-border-subtle text-button-sm font-body font-semibold text-text-primary hover:border-border-card transition-colors press-scale"
-                            >
-                                <PlusCircle size={13} strokeWidth={2} />
-                                Save
-                            </button>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-                                className="inline-flex items-center gap-[6px] h-[32px] px-[14px] rounded-button bg-surface-elevated border border-border-subtle text-button-sm font-body font-semibold text-text-primary hover:border-border-card transition-colors press-scale"
-                            >
-                                <Pencil size={12} strokeWidth={2} />
-                                View
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Right image inset */}
-                    <div className="w-[120px] relative flex-shrink-0">
-                        <img
-                            src={imageSrc}
-                            alt=""
-                            className="absolute inset-0 w-full h-full object-cover card-image-inset"
-                        />
+            <Card>
+                <div className="p-[24px]">
+                    <h3 className="font-display text-h3 text-text-primary mb-[8px]">
+                        {title}
+                    </h3>
+                    <p className="font-body text-body-sm text-text-secondary mb-[16px] leading-relaxed">
+                        {description}
+                    </p>
+                    <div className="pt-[16px] border-t border-border-divider">
+                        <span className="font-body text-body-xs font-medium text-text-muted block mb-[6px]">
+                            Practical Details
+                        </span>
+                        <p className="font-body text-body-xs text-text-secondary leading-relaxed">
+                            {practicalDetails}
+                        </p>
                     </div>
                 </div>
-
-                {/* Star badge */}
-                {pinned && (
-                    <div className="absolute top-[16px] right-[16px] w-[28px] h-[28px] rounded-full bg-brand-accent-light flex items-center justify-center">
-                        <StarFilled size={14} className="text-brand-accent" />
-                    </div>
-                )}
             </Card>
         </div>
     );
 }
 
 /* ════════════════════════════════════════════
-   Feature Row (Screen 2 Pattern)
-   ════════════════════════════════════════════
-   ┌──┐ Feature Title        (body-sm, 500)
-   │🎬│ Feature subtitle     (body-xs, muted)
-   └──┘                                      */
+   Feature Row (Options pattern)
+   ════════════════════════════════════════════ */
 
 interface FeatureRowProps {
     icon: React.ReactNode;
@@ -177,7 +108,7 @@ export function FeatureRow({ icon, title, subtitle, showDivider = true }: Featur
 }
 
 /* ════════════════════════════════════════════
-   Glass Metrics Card (Screen 3 Pattern)
+   Glass Metrics Card (Immersive view)
    ════════════════════════════════════════════ */
 
 interface GlassMetricItem {
@@ -211,8 +142,12 @@ export function GlassCard({ metrics, className = '' }: GlassCardProps) {
 
 /* ════════════════════════════════════════════
    Metric Row — inline metric display
-   Used inside ActivityCard and standalone
    ════════════════════════════════════════════ */
+
+interface MetricItem {
+    label: string;
+    value: string;
+}
 
 interface MetricRowProps {
     metrics: MetricItem[];
@@ -235,34 +170,5 @@ export function MetricRow({ metrics, variant = 'light', className = '' }: Metric
                 </div>
             ))}
         </div>
-    );
-}
-
-/* ════════════════════════════════════════════
-   Image Card — Simple card with image header
-   ════════════════════════════════════════════ */
-
-interface ImageCardProps {
-    imageSrc: string;
-    imageAlt?: string;
-    children: React.ReactNode;
-    className?: string;
-    onClick?: () => void;
-}
-
-export function ImageCard({ imageSrc, imageAlt = '', children, className = '', onClick }: ImageCardProps) {
-    return (
-        <Card hoverable={!!onClick} onClick={onClick} className={`overflow-hidden ${className}`}>
-            <div className="aspect-[16/9] overflow-hidden">
-                <img
-                    src={imageSrc}
-                    alt={imageAlt}
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                />
-            </div>
-            <div className="p-[24px]">
-                {children}
-            </div>
-        </Card>
     );
 }

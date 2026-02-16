@@ -4,14 +4,9 @@
 
 /* ────────────────────────────────────────────
    Polymath Display — Headings, Metrics, Hero
+   Weights: 400 (Regular), 500 (Medium), 700 (Bold)
+   Omitting 300 (Light) per Apple HIG accessibility guidance
    ──────────────────────────────────────────── */
-@font-face {
-  font-family: 'Polymath Display';
-  src: url('/fonts/Polymath Display Light.ttf') format('truetype');
-  font-weight: 300;
-  font-display: swap;
-}
-
 @font-face {
   font-family: 'Polymath Display';
   src: url('/fonts/Polymath Display Regular.ttf') format('truetype');
@@ -35,14 +30,8 @@
 
 /* ────────────────────────────────────────────
    Polymath Text — Body, Labels, Buttons
+   Weights: 400 (Regular), 600 (Semibold)
    ──────────────────────────────────────────── */
-@font-face {
-  font-family: 'Polymath Text';
-  src: url('/fonts/Polymath Text Light.ttf') format('truetype');
-  font-weight: 300;
-  font-display: swap;
-}
-
 @font-face {
   font-family: 'Polymath Text';
   src: url('/fonts/Polymath Text Regular.ttf') format('truetype');
@@ -97,8 +86,8 @@
         rgba(0, 0, 0, 0.45) 100%);
   }
 
-  /* ────────────────────────────────────
-       Glass effects (Pillar B/C)
+  /* ──────────────────────────────────
+       Glass effects
        ──────────────────────────────────── */
   .glass-metrics {
     background: rgba(10, 10, 10, 0.6);
@@ -111,7 +100,7 @@
     background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(0, 0, 0, 0.04);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   }
 
   .glass-back {
@@ -120,15 +109,7 @@
     -webkit-backdrop-filter: blur(12px);
   }
 
-  /* ────────────────────────────────────
-       Card image inset (right-side bleed)
-       ──────────────────────────────────── */
-  .card-image-inset {
-    mask-image: linear-gradient(to right, transparent 0%, black 15%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%);
-  }
-
-  /* ────────────────────────────────────
+  /* ──────────────────────────────────
        Stagger animation delays
        ──────────────────────────────────── */
   .stagger-1 {
@@ -151,7 +132,7 @@
     animation-delay: 400ms;
   }
 
-  /* ────────────────────────────────────
+  /* ──────────────────────────────────
        Press scale for tappable elements
        ──────────────────────────────────── */
   .press-scale {
@@ -164,7 +145,7 @@
 }
 
 /* ────────────────────────────────────────────
-   Custom scrollbar
+   Custom scrollbar — minimal
    ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 4px;

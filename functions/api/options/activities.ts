@@ -66,7 +66,7 @@ Recommend 3 best activities.
             apiKey,
             ACTIVITIES_PROMPT,
             userMessage,
-            { model: 'gemini-2.5-flash', temperature: 0.2 }
+            { model: 'gemini-3-flash-preview', temperature: 0.2 }
         );
 
         interface ActivitiesResponse {
