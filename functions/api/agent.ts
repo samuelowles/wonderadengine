@@ -19,7 +19,6 @@ const RoutingResultSchema = z.object({
 });
 
 // Wondura Agent System Prompt from 03_prompts.md
-// Wondura Agent System Prompt from 03_prompts.md
 const WONDURA_PROMPT = `You are Wondura, an expert local travel guide agent. Your persona is modeled on a New Zealand Department of Conservation (DOC) ranger: knowledgeable, friendly, helpful, authentic, and practical.
 
 You do not generate generic itineraries. You generate specific, highly practical, and culturally aware travel experience cards.
@@ -67,19 +66,35 @@ interface Env {
     PARALLEL_API_KEY: string;
 }
 
+/** Wrap a promise with a timeout. Returns fallback on timeout. */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+    const timeout = new Promise<T>((resolve) =>
+        setTimeout(() => resolve(fallback), ms)
+    );
+    return Promise.race([promise, timeout]);
+}
+
+/** SSE helper */
+function sse(event: string, data: unknown): string {
+    return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const encoder = new TextEncoder();
 
-    // Create a streaming response
     const stream = new ReadableStream({
         async start(controller) {
+            const send = (event: string, data: unknown) => {
+                controller.enqueue(encoder.encode(sse(event, data)));
+            };
+
             try {
                 // Parse request
                 const body = await context.request.json();
                 const parsed = RoutingResultSchema.safeParse(body);
 
                 if (!parsed.success) {
-                    controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ error: 'Invalid input' })}\n\n`));
+                    send('error', { error: 'Invalid input' });
                     controller.close();
                     return;
                 }
@@ -88,37 +103,53 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 const location = extracted.destination || 'New Zealand';
                 const dates = extracted.date || 'upcoming';
                 const activities = extracted.activity || '';
+                const dealmaker = extracted.deal_maker || '';
 
-                // Send status: searching
-                controller.enqueue(encoder.encode(`event: status\ndata: ${JSON.stringify({ phase: 'searching', tool: 'weather' })}\n\n`));
-
-                // Parallel tool execution
                 const apiKey = context.env.GOOGLE_AI_KEY;
                 const parallelKey = context.env.PARALLEL_API_KEY;
 
-                // Execute tools concurrently (with fallbacks if PARALLEL_API_KEY not set)
-                let toolData: { weather: unknown; events: unknown; dining: unknown; activities: unknown; price: unknown; venue: unknown } = {
-                    weather: null, events: null, dining: null, activities: null, price: null, venue: null
+                // ── Tool Execution (with per-tool status + 15s timeout) ──
+                let toolData: Record<string, unknown> = {
+                    weather: null, events: null, dining: null,
+                    activities: null, price: null, venue: null
                 };
+
+                const TOOL_TIMEOUT = 15_000; // 15 seconds per tool
+                const errorFallback = { error: 'Timed out' };
 
                 if (parallelKey && parallelKey !== 'your_parallel_api_key_here') {
                     try {
-                        const dealmaker = extracted.deal_maker || '';
-                        const [weatherData, eventsData, diningData, activitiesData, priceData, venueData] = await Promise.all([
-                            getWeather(location, dates, parallelKey, dealmaker, activities).catch(e => ({ error: e.message })),
-                            getEvents(location, dates, parallelKey, dealmaker, activities).catch(e => ({ error: e.message })),
-                            getDining(location, '', parallelKey, dealmaker, activities).catch(e => ({ error: e.message })),
-                            getActivities(location, activities, parallelKey, dealmaker, dates).catch(e => ({ error: e.message })),
-                            verifyPrice(`${activities || 'travel'} experiences in ${location}`, 'N/A', null, parallelKey, dates).catch(e => ({ error: e.message })),
-                            verifyVenue(location, location, dates, parallelKey).catch(e => ({ error: e.message })),
-                        ]);
-                        toolData = { weather: weatherData, events: eventsData, dining: diningData, activities: activitiesData, price: priceData, venue: venueData };
+                        send('status', { phase: 'searching', tool: 'weather' });
+
+                        // Run tools with individual timeouts and status updates
+                        const toolPromises = [
+                            withTimeout(getWeather(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
+                            withTimeout(getEvents(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
+                            withTimeout(getDining(location, '', parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
+                            withTimeout(getActivities(location, activities, parallelKey, dealmaker, dates), TOOL_TIMEOUT, errorFallback),
+                            withTimeout(verifyPrice(`${activities || 'travel'} experiences in ${location}`, 'N/A', null, parallelKey, dates), TOOL_TIMEOUT, errorFallback as any),
+                            withTimeout(verifyVenue(location, location, dates, parallelKey), TOOL_TIMEOUT, errorFallback as any),
+                        ];
+
+                        const toolNames = ['weather', 'events', 'dining', 'activities', 'price', 'venue'];
+
+                        // Execute all concurrently but track completion
+                        const results = await Promise.allSettled(toolPromises);
+
+                        for (let i = 0; i < results.length; i++) {
+                            const result = results[i];
+                            if (result.status === 'fulfilled') {
+                                toolData[toolNames[i]] = result.value;
+                            } else {
+                                toolData[toolNames[i]] = { error: String(result.reason) };
+                            }
+                        }
                     } catch (e) {
                         console.error('Tool execution error:', e);
                     }
                 }
 
-                controller.enqueue(encoder.encode(`event: status\ndata: ${JSON.stringify({ phase: 'generating' })}\n\n`));
+                send('status', { phase: 'generating' });
 
                 // Build context for agent
                 const userContext = `
@@ -136,7 +167,7 @@ Tool Data (Price): ${JSON.stringify(toolData.price) || 'Unavailable'}
 Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
 `;
 
-                // Call Gemini Pro for experience cards
+                // Call Gemini for experience cards
                 const response = await callGemini(
                     apiKey,
                     WONDURA_PROMPT,
@@ -149,24 +180,23 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                     const cards = extractJson(response);
                     if (Array.isArray(cards)) {
                         for (const card of cards) {
-                            controller.enqueue(encoder.encode(`event: card\ndata: ${JSON.stringify(card)}\n\n`));
+                            send('card', card);
                         }
                     }
                 } catch (parseError) {
                     console.error('Failed to parse cards:', parseError);
-                    // Send raw response as fallback
-                    controller.enqueue(encoder.encode(`event: card\ndata: ${JSON.stringify({
+                    send('card', {
                         card_title: 'Experience Recommendation',
                         experience_description: response.slice(0, 300) + '...',
                         practical_logistics: 'Unable to parse structured data. See description above.'
-                    })}\n\n`));
+                    });
                 }
 
-                controller.enqueue(encoder.encode(`event: done\ndata: {}\n\n`));
+                send('done', {});
                 controller.close();
             } catch (error) {
                 console.error('Agent error:', error);
-                controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ error: String(error) })}\n\n`));
+                controller.enqueue(encoder.encode(sse('error', { error: String(error) })));
                 controller.close();
             }
         }
