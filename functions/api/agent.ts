@@ -46,6 +46,7 @@ Return ONLY a JSON array of exactly 3 objects with these fields:
 [
   {
     "card_title": "Clear, descriptive title — no clickbait",
+    "venue_name": "The exact venue name as it appears in the Tool Data (e.g., 'The Barking Dog Bar & Eatery')",
     "hook": "One sentence capturing what makes this experience special.",
     "context": "Why locals value this. History, culture, or community significance.",
     "practical": "Hours, cost, location, logistics — derived from Tool Data. Be specific.",
@@ -187,10 +188,13 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                     try {
                         send('status', { phase: 'verifying' });
 
-                        const venuesToVerify = parsedCards.map(c => ({
-                            name: c.card_title || '',
-                            location,
-                        })).filter(v => v.name);
+                        const venuesToVerify = parsedCards
+                            .map(c => ({
+                                name: c.venue_name || c.card_title || '',
+                                cardTitle: c.card_title || '',
+                                location,
+                            }))
+                            .filter(v => v.name);
 
                         // 3 parallel Gemini + Google Search calls, 8s timeout
                         const verificationResults = await withTimeout(
@@ -204,10 +208,13 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                             }))
                         );
 
-                        for (const result of verificationResults) {
+                        for (let i = 0; i < verificationResults.length; i++) {
+                            const result = verificationResults[i];
+                            const cardTitle = venuesToVerify[i]?.cardTitle || result.venue_name;
                             if (result.exists) {
                                 send('verified', {
                                     venue_name: result.venue_name,
+                                    card_title: cardTitle,
                                     verified: true,
                                     confidence: result.confidence,
                                     summary: result.summary,
@@ -216,6 +223,7 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                                 // DROP unverified cards
                                 send('drop', {
                                     venue_name: result.venue_name,
+                                    card_title: cardTitle,
                                     reason: result.summary,
                                 });
                             }

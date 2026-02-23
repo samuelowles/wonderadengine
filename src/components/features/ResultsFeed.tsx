@@ -58,7 +58,8 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                                 setStatus('');
                             } else if (event === 'drop') {
                                 // Remove unverified card by matching card_title
-                                setCards(prev => prev.filter(c => c.card_title !== data.venue_name));
+                                const dropTitle = data.card_title || data.venue_name;
+                                setCards(prev => prev.filter(c => c.card_title !== dropTitle));
                             } else if (event === 'verified') {
                                 // Card confirmed — could add a verified badge later
                             } else if (event === 'error') {

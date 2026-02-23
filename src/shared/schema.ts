@@ -24,6 +24,7 @@ export const RoutingResultSchema = z.object({
 // Experience Card Schema - agent output (original 5-field structure)
 export const ExperienceCardSchema = z.object({
     card_title: z.string(),
+    venue_name: z.string().optional(),
     hook: z.string(),
     context: z.string(),
     practical: z.string(),
