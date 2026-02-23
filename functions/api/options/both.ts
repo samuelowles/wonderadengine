@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { callGemini, extractJson } from '../lib/gemini';
+import { ensureNZ } from '../lib/location';
 
 const RoutingResultSchema = z.object({
     routing: z.enum(['Details', 'Options_Destinations', 'Options_Activities', 'Options_Both', 'Unknown']),
@@ -57,7 +58,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
         const userMessage = `
 User is looking for a complete trip:
-- Location hint: ${extracted.destination || 'Anywhere in New Zealand'}
+- Location hint: ${ensureNZ(extracted.destination)}
 - Activity interests: ${extracted.activity || 'Open to anything'}
 - When: ${extracted.date || 'Flexible'}
 - Dealmaker: ${extracted.deal_maker || 'None specified'}

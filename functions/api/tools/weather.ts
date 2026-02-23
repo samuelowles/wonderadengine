@@ -1,5 +1,7 @@
 // Weather tool - calls Parallel AI for weather data
 // Aligned with N8N "Weather Search" tool definition
+import { ensureNZ } from '../lib/location';
+
 export async function getWeather(
     location: string,
     dates: string,
@@ -7,8 +9,9 @@ export async function getWeather(
     dealmaker?: string,
     activities?: string
 ) {
+    const nzLocation = ensureNZ(location);
     const objectiveParts = [
-        `Find comprehensive weather information for ${location} around ${dates}.`,
+        `Find comprehensive weather information for ${nzLocation} around ${dates}.`,
         `Include temperature, precipitation, wind conditions, and forecasts.`,
     ];
     if (activities) {

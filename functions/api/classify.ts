@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { callGemini, extractJson } from './lib/gemini';
+import { ensureNZ } from './lib/location';
 
 // Request schema
 const UserQuerySchema = z.object({
@@ -109,7 +110,18 @@ Dealmaker: ${dealmaker || 'Not specified'}
             });
         }
 
-        return new Response(JSON.stringify(validated.data), {
+        // Enforce NZ qualification on the extracted destination
+        const nzResult = {
+            ...validated.data,
+            extracted: {
+                ...validated.data.extracted,
+                destination: validated.data.extracted.destination
+                    ? ensureNZ(validated.data.extracted.destination)
+                    : validated.data.extracted.destination,
+            },
+        };
+
+        return new Response(JSON.stringify(nzResult), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });

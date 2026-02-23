@@ -1,5 +1,7 @@
 // Events tool - calls Parallel AI for local events
 // Aligned with N8N "Local Events Search2" tool definition
+import { ensureNZ } from '../lib/location';
+
 export async function getEvents(
     location: string,
     dates: string,
@@ -7,8 +9,9 @@ export async function getEvents(
     dealmaker?: string,
     activities?: string
 ) {
+    const nzLocation = ensureNZ(location);
     const objectiveParts = [
-        `Find local events, activities, and things to do in ${location} during ${dates}.`,
+        `Find local events, activities, and things to do in ${nzLocation} during ${dates}.`,
         `Include concerts, food & drink events, sports, arts & culture, outdoor events, festivals, and community gatherings.`,
         `Provide details on dates, times, venues, tickets, and activities.`,
     ];

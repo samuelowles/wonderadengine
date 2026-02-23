@@ -1,5 +1,7 @@
 // Activities tool - calls Parallel AI for local activities
 // Aligned with N8N "Local Activities Search1" tool definition
+import { ensureNZ } from '../lib/location';
+
 export async function getActivities(
     location: string,
     activityTypes: string,
@@ -7,8 +9,9 @@ export async function getActivities(
     dealmaker?: string,
     dates?: string
 ) {
+    const nzLocation = ensureNZ(location);
     const objectiveParts = [
-        `Find local activities, attractions, and experiences in ${location}.`,
+        `Find local activities, attractions, and experiences in ${nzLocation}.`,
         `Include outdoor adventures, water sports, tours, cultural activities, entertainment, wellness, wildlife, scenic spots, and family-friendly options.`,
         `Provide details on bookings, schedules, prices, requirements, and activity descriptions.`,
     ];

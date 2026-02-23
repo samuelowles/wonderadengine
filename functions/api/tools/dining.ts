@@ -1,5 +1,7 @@
 // Dining tool - calls Parallel AI for restaurants and food
 // Aligned with N8N "Food and Dining Search" tool definition
+import { ensureNZ } from '../lib/location';
+
 export async function getDining(
     location: string,
     preferences: string,
@@ -7,8 +9,9 @@ export async function getDining(
     dealmaker?: string,
     activities?: string
 ) {
+    const nzLocation = ensureNZ(location);
     const objectiveParts = [
-        `Find restaurants and dining options in ${location}.`,
+        `Find restaurants and dining options in ${nzLocation}.`,
         `Include fine dining, casual restaurants, cafes, bars, seafood, ethnic cuisines, and local favorites.`,
         `Provide details on menus, prices, hours, reviews, and reservations.`,
     ];

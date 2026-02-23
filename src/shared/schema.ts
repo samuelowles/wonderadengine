@@ -21,11 +21,15 @@ export const RoutingResultSchema = z.object({
     }),
 });
 
-// Experience Card Schema - agent output
+// Experience Card Schema - agent output (with verification fields)
 export const ExperienceCardSchema = z.object({
     card_title: z.string(),
     experience_description: z.string(),
     practical_logistics: z.string(),
+    venue_name: z.string().nullable().optional(),
+    venue_address: z.string().nullable().optional(),
+    verification_status: z.enum(['verified', 'unverified', 'failed']).optional(),
+    verification_note: z.string().nullable().optional(),
 });
 
 // Option Item Schema - for destinations/activities
