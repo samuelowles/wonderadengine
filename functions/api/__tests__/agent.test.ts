@@ -1,6 +1,5 @@
 // Unit tests for Wondura Agent output quality
-// Tests validate that LLM-generated cards meet the ideal user outcome:
-// specific, accurate, local-knowledge NZ travel recommendations
+// Focus: anti-hallucination, tool-data grounding, search radius expansion
 import { describe, it, expect } from 'vitest';
 import { ExperienceCardSchema } from '../../../src/shared/schema';
 import { extractJson } from '../lib/gemini';
@@ -8,108 +7,59 @@ import { z } from 'zod';
 
 // ── Schema for validating a full agent response ──
 const AgentResponseSchema = z.array(ExperienceCardSchema).length(3);
+type Card = z.infer<typeof ExperienceCardSchema>;
 
-// ── Mock agent responses for testing ──
+// ══════════════════════════════════════════
+//  HELPERS — reusable output validators
+// ══════════════════════════════════════════
 
-// GOOD response: specific, NZ-only, tool-data-driven
-const GOOD_RESPONSE = JSON.stringify([
-    {
-        card_title: "Wine Tasting at Mission Estate Winery",
-        hook: "New Zealand's oldest winery sits on a sun-drenched hillside above Napier, pouring wines that have won international acclaim since 1851.",
-        context: "Mission Estate was founded by French missionaries and remains a working winery beloved by Hawke's Bay locals. The restaurant terrace is where locals bring visitors for a first taste of the region.",
-        practical: "Open daily 9am–5pm. Cellar door tastings $15 for 5 wines. 198 Church Road, Greenmeadows, Napier. Free parking. Restaurant bookings recommended for lunch.",
-        insight: "Ask for the Jewelstone range — it's their premium label and often not on the standard tasting menu. The 2022 Syrah is exceptional.",
-        consider: "The restaurant gets busy on weekends — book ahead for Saturday lunch. Cellar door is walk-in only."
-    },
-    {
-        card_title: "Sunrise Walk at Te Mata Peak",
-        hook: "The 399-metre summit above Havelock North delivers one of the most dramatic panoramas in the North Island — and locals come here to watch the sunrise paint the plains gold.",
-        context: "Te Mata Peak is a Hawke's Bay icon. The ridgeline track has been walked by generations of locals and the peak holds cultural significance for local iwi as a sleeping giant.",
-        practical: "Free entry, open 24 hours. Te Mata Peak Road, Havelock North. 30-minute walk from the carpark to the summit. Sealed path suitable for most fitness levels.",
-        insight: "The sunrise walk is best mid-week when you'll have the summit to yourself. Bring a thermos — the wind chill can surprise you even on warm mornings.",
-        consider: "The peak road closes in high winds. Check Hastings District Council website before driving up. No facilities at the summit."
-    },
-    {
-        card_title: "Seafood at Pacifica Restaurant",
-        hook: "Chef Jeremy Rameka's modern NZ cuisine has earned Pacifica a place among the country's best restaurants — and it's right on Marine Parade.",
-        context: "Pacifica is Napier's fine dining flagship. Rameka brings a Māori perspective to seasonal Hawke's Bay produce, with a menu that changes with what's fresh from local growers and fishers.",
-        practical: "Open Wed–Sat, dinner from 5:30pm. Degustation $135pp, à la carte mains $38–$48. 209 Marine Parade, Napier. Bookings essential — often booked out 2 weeks ahead.",
-        insight: "Ask about the kai moana tasting menu — it's not always on the website but available on request. The wine pairings feature small-batch Hawke's Bay producers you won't find elsewhere.",
-        consider: "Closed Sun–Tue. Not suitable for young children. Smart casual dress code."
+/** Extract known venue names from structured tool data */
+function extractToolDataVenues(toolData: Record<string, any>): string[] {
+    const venues: string[] = [];
+    if (toolData.dining?.results) {
+        for (const r of toolData.dining.results) {
+            if (r.title) venues.push(r.title);
+        }
     }
-]);
-
-// BAD response: non-NZ location
-const BAD_RESPONSE_NON_NZ = JSON.stringify([
-    {
-        card_title: "Sunset at Bondi Beach",
-        hook: "Sydney's famous beach at golden hour.",
-        context: "A classic Australian experience.",
-        practical: "Bondi Beach, Sydney, Australia. Free entry.",
-        insight: "Grab fish and chips from the local shop.",
-        consider: "Crowded on weekends."
-    },
-    {
-        card_title: "Wine in Marlborough",
-        hook: "Sauvignon Blanc country.",
-        context: "World-famous wine region.",
-        practical: "Cloudy Bay, Blenheim. Open daily.",
-        insight: "Try the reserve wines.",
-        consider: "Book ahead in summer."
-    },
-    {
-        card_title: "Hiking in Fiji",
-        hook: "Tropical trail through rainforest.",
-        context: "Fiji's interior is stunning.",
-        practical: "Colo-i-Suva Forest Park, Fiji.",
-        insight: "Bring insect repellent.",
-        consider: "Rainy season Dec–Apr."
+    if (toolData.activities?.results) {
+        for (const r of toolData.activities.results) {
+            if (r.title) venues.push(r.title);
+        }
     }
-]);
-
-// BAD response: vague, no specifics
-const BAD_RESPONSE_VAGUE = JSON.stringify([
-    {
-        card_title: "A Nice Walk",
-        hook: "Go for a walk somewhere nice.",
-        context: "Walking is good for you.",
-        practical: "Various locations available.",
-        insight: "Wear comfortable shoes.",
-        consider: "Check the weather."
-    },
-    {
-        card_title: "Try Some Food",
-        hook: "There are restaurants around.",
-        context: "Food is important when travelling.",
-        practical: "Many options to choose from.",
-        insight: "Ask locals for recommendations.",
-        consider: "Prices vary."
-    },
-    {
-        card_title: "Visit a Place",
-        hook: "There are interesting places to see.",
-        context: "Tourism is popular here.",
-        practical: "Check opening hours online.",
-        insight: "Go early to avoid crowds.",
-        consider: "Some places charge entry."
+    if (toolData.events?.results) {
+        for (const r of toolData.events.results) {
+            if (r.title) venues.push(r.title);
+        }
     }
-]);
+    return venues;
+}
 
-// BAD response: banned tone words
-const BAD_RESPONSE_TONE = JSON.stringify([
-    {
-        card_title: "Hidden Gem Winery Experience",
-        hook: "This unforgettable hidden gem is a bucket list must-see.",
-        context: "A world-class destination that's truly must-visit.",
-        practical: "Open daily. Check website.",
-        insight: "This is a once-in-a-lifetime experience.",
-        consider: "Book early for this amazing adventure."
-    },
-    { card_title: "x", hook: "x", context: "x", practical: "x", insight: "x", consider: "x" },
-    { card_title: "x", hook: "x", context: "x", practical: "x", insight: "x", consider: "x" },
-]);
+/** Get the first distinctive word from a venue name (skip articles) */
+function getDistinctiveWord(venueName: string): string | null {
+    const articles = new Set(['the', 'a', 'an']);
+    const words = venueName.split(/\s+/).filter(w => !articles.has(w.toLowerCase()));
+    const word = words.find(w => w.length >= 4);
+    return word ? word.toLowerCase() : null;
+}
 
-// ── Helpers ──
+/** Check if a card references at least one venue from the tool data whitelist */
+function cardReferencesToolDataVenue(card: Card, knownVenues: string[]): boolean {
+    const allText = [card.card_title, card.hook, card.context, card.practical, card.insight, card.consider]
+        .join(' ').toLowerCase();
+    return knownVenues.some(venue => {
+        const word = getDistinctiveWord(venue);
+        return word !== null && allText.includes(word);
+    });
+}
+
+/** Check if a card title contains a fabricated venue (not in the known list) */
+function titleLikelyFabricated(cardTitle: string, knownVenues: string[]): boolean {
+    const titleLower = cardTitle.toLowerCase();
+    return !knownVenues.some(venue => {
+        const word = getDistinctiveWord(venue);
+        return word !== null && titleLower.includes(word);
+    });
+}
 
 const BANNED_PHRASES = [
     'hidden gem', 'bucket list', 'unforgettable', 'must-see', 'must-visit',
@@ -122,138 +72,265 @@ const NON_NZ_LOCATIONS = [
 ];
 
 const SPECIFICITY_INDICATORS = [
-    /\d{1,2}(?:am|pm|:\d{2})/i,           // time: "9am", "5:30pm"
-    /\$\d+/,                                // price: "$15", "$135"
+    /\d{1,2}(?:am|pm|:\d{2})/i,           // time
+    /\$\d+/,                                // price
     /\d+\s*(?:minute|hour|km|metre|m)\b/i,  // distance/duration
     /open\s+(?:daily|mon|tue|wed|thu|fri|sat|sun)/i,  // opening hours
-    /(?:\d+\s+)?[\w\s]+\s+(?:road|street|avenue|parade|drive|lane)\b/i, // street address
+    /(?:\d+\s+)?[\w\s]+\s+(?:road|street|avenue|parade|drive|lane)\b/i, // address
 ];
 
-function cardContainsBannedPhrases(card: z.infer<typeof ExperienceCardSchema>): string[] {
+function cardContainsBannedPhrases(card: Card): string[] {
     const allText = [card.hook, card.context, card.practical, card.insight, card.consider, card.card_title]
-        .join(' ')
-        .toLowerCase();
+        .join(' ').toLowerCase();
     return BANNED_PHRASES.filter(phrase => allText.includes(phrase));
 }
 
-function cardContainsNonNZLocations(card: z.infer<typeof ExperienceCardSchema>): string[] {
+function cardContainsNonNZLocations(card: Card): string[] {
     const allText = [card.hook, card.context, card.practical, card.insight, card.consider, card.card_title]
-        .join(' ')
-        .toLowerCase();
+        .join(' ').toLowerCase();
     return NON_NZ_LOCATIONS.filter(loc => allText.includes(loc));
 }
 
-function cardHasSpecificity(card: z.infer<typeof ExperienceCardSchema>): boolean {
-    const practicalText = card.practical;
-    return SPECIFICITY_INDICATORS.some(pattern => pattern.test(practicalText));
+function cardHasSpecificity(card: Card): boolean {
+    return SPECIFICITY_INDICATORS.some(pattern => pattern.test(card.practical));
 }
+
+// ══════════════════════════════════════════
+//  MOCK DATA — simulating real tool responses
+// ══════════════════════════════════════════
+
+// Simulates tool data that would come back for "Beach Haven, burgers"
+// Contains REAL nearby venues — this is what the model should draw from
+const TOOL_DATA_BEACH_HAVEN = JSON.stringify({
+    dining: {
+        results: [
+            { title: "Birkenhead RSA", content: "Casual dining in Birkenhead, 5 min drive from Beach Haven. Burgers $18-22. Open daily." },
+            { title: "The Barking Dog Bar & Eatery", content: "Birkenhead Point. Craft burgers from $20. Open Wed-Sun, 11am-late." },
+            { title: "Swashbucklers Restaurant & Bar", content: "Birkenhead. Family-friendly. Burgers, fish & chips. $16-24. Open daily 11am-9pm." },
+        ]
+    },
+    weather: { forecast: "Partly cloudy, 22°C, light wind" },
+    venue: { results: [] },
+    price: { results: [] },
+    activities: { results: [] },
+    events: { results: [] },
+});
+
+// A GOOD model response that only uses venues from the tool data above
+const GOOD_RESPONSE_GROUNDED = JSON.stringify([
+    {
+        card_title: "Burgers at The Barking Dog",
+        hook: "Birkenhead Point's craft burger spot draws locals from across the North Shore for its rotating seasonal menu.",
+        context: "Beach Haven itself has limited burger options, but a 5-minute drive to Birkenhead opens up several solid spots. The Barking Dog has been a Birkenhead Point fixture for years.",
+        practical: "Open Wed-Sun, 11am-late. Craft burgers from $20. Located at Birkenhead Point, 5 minutes drive from Beach Haven.",
+        insight: "Thursday is locals' night — quieter than the weekend and the kitchen is less rushed, so the burgers come out better.",
+        consider: "Closed Mon-Tue. Gets busy after 6pm on Fridays — arrive by 5:30 or expect a wait."
+    },
+    {
+        card_title: "Swashbucklers Family Dinner",
+        hook: "A no-frills family spot in Birkenhead where the burgers are honest and the portions are generous.",
+        context: "Swashbucklers has been serving Birkenhead families for over a decade. It's the kind of place where the staff know the regulars.",
+        practical: "Open daily 11am-9pm. Burgers $16-24, fish & chips also available. Birkenhead, 5 min from Beach Haven.",
+        insight: "The Kiwi burger with beetroot and egg is the local pick — skip the fancy options.",
+        consider: "It's family-oriented, so the atmosphere is casual. Not a date-night spot."
+    },
+    {
+        card_title: "Birkenhead RSA for Classic Burgers",
+        hook: "The RSA does a surprisingly good burger at prices that haven't caught up with the rest of Auckland.",
+        context: "NZ RSAs are community hubs, and Birkenhead's is no exception. Non-members welcome for dining.",
+        practical: "Open daily. Burgers $18-22. Casual dining in Birkenhead, 5 min drive from Beach Haven.",
+        insight: "You don't need to be a member to eat here — just sign in at the front desk. The beer prices are the real bonus.",
+        consider: "The dining room closes earlier than the bar — check last orders if arriving after 7:30pm."
+    }
+]);
+
+// A BAD response — fabricates venues not in the tool data
+const BAD_RESPONSE_FABRICATED = JSON.stringify([
+    {
+        card_title: "General Public Burgers & Fries",
+        hook: "A neighborhood staple known for generous portions.",
+        context: "This venue is a cornerstone of the Beach Haven village.",
+        practical: "Located at 3/83 Beach Haven Road. Open for dinner tonight.",
+        insight: "The loaded fries here are famously large.",
+        consider: "Popular spot for families in the early evening."
+    },
+    {
+        card_title: "Beach Bites Takeaway",
+        hook: "A local favorite for classic Kiwi-style burgers.",
+        context: "Relatively new to the Beach Haven scene.",
+        practical: "Situated in the main Beach Haven shops. Burgers $15-22.",
+        insight: "The Bite Burger is the go-to.",
+        consider: "Check venue for exact closing times."
+    },
+    {
+        card_title: "Tai Kahi Smash Burgers at Cedar Centre",
+        hook: "A genuine community-led dinner featuring gourmet smash burgers.",
+        context: "A local community initiative at the Cedar Centre.",
+        practical: "Located at 56a Tramway Road, Beach Haven. Serving tonight 5:30-7pm.",
+        insight: "This is a community gathering, bring reusable containers.",
+        consider: "Service window is very short, ending at 7pm."
+    }
+]);
+
+// A response that properly expands search radius with transparency
+const GOOD_RESPONSE_EXPANDED_RADIUS = JSON.stringify([
+    {
+        card_title: "Burgers at The Barking Dog",
+        hook: "Beach Haven's nearest quality burger spot is a short drive to Birkenhead Point.",
+        context: "Beach Haven itself has limited dining options — but that's the reality of Auckland's quieter suburbs. Birkenhead, a 5-minute drive away, has several good options.",
+        practical: "The Barking Dog, Birkenhead Point. Open Wed-Sun, 11am-late. Craft burgers from $20.",
+        insight: "Locals from Beach Haven, Birkdale, and Chatswood all converge on Birkenhead for dining.",
+        consider: "10-minute drive from Beach Haven. Closed Mon-Tue."
+    },
+    {
+        card_title: "x", hook: "x", context: "x", practical: "x", insight: "x", consider: "x"
+    },
+    {
+        card_title: "x", hook: "x", context: "x", practical: "x", insight: "x", consider: "x"
+    }
+]);
 
 // ══════════════════════════════════════════
 //  TESTS
 // ══════════════════════════════════════════
 
-describe('Agent Output: Schema Compliance', () => {
-    it('should parse a well-formed response into ExperienceCardSchema', () => {
-        const cards = extractJson<unknown[]>(GOOD_RESPONSE);
+describe('Schema Compliance', () => {
+    it('parses a well-formed response with all 5 content fields', () => {
+        const cards = extractJson<unknown[]>(GOOD_RESPONSE_GROUNDED);
         const result = AgentResponseSchema.safeParse(cards);
         expect(result.success).toBe(true);
     });
 
-    it('should return exactly 3 cards', () => {
-        const cards = extractJson<unknown[]>(GOOD_RESPONSE);
+    it('returns exactly 3 cards', () => {
+        const cards = extractJson<unknown[]>(GOOD_RESPONSE_GROUNDED);
         expect(cards).toHaveLength(3);
     });
 
-    it('each card should have all 5 content fields', () => {
-        const cards = extractJson<z.infer<typeof ExperienceCardSchema>[]>(GOOD_RESPONSE);
+    it('each card has non-empty values for all 5 fields', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_GROUNDED);
         for (const card of cards) {
-            expect(card.card_title).toBeTruthy();
-            expect(card.hook).toBeTruthy();
-            expect(card.context).toBeTruthy();
-            expect(card.practical).toBeTruthy();
-            expect(card.insight).toBeTruthy();
-            expect(card.consider).toBeTruthy();
+            expect(card.card_title.length).toBeGreaterThan(0);
+            expect(card.hook.length).toBeGreaterThan(0);
+            expect(card.context.length).toBeGreaterThan(0);
+            expect(card.practical.length).toBeGreaterThan(0);
+            expect(card.insight.length).toBeGreaterThan(0);
+            expect(card.consider.length).toBeGreaterThan(0);
         }
-    });
-
-    it('should handle JSON wrapped in markdown code blocks', () => {
-        const wrapped = '```json\n' + GOOD_RESPONSE + '\n```';
-        const cards = extractJson<unknown[]>(wrapped);
-        const result = AgentResponseSchema.safeParse(cards);
-        expect(result.success).toBe(true);
-    });
-
-    it('should throw on completely invalid input', () => {
-        expect(() => extractJson('This is not JSON at all')).toThrow();
     });
 });
 
-describe('Agent Output: NZ-Only Constraint', () => {
-    it('good response should contain no non-NZ locations', () => {
-        const cards = extractJson<z.infer<typeof ExperienceCardSchema>[]>(GOOD_RESPONSE);
+describe('Tool Data Grounding (Anti-Hallucination)', () => {
+    const toolData = JSON.parse(TOOL_DATA_BEACH_HAVEN);
+    const knownVenues = extractToolDataVenues(toolData);
+
+    it('grounded response cards each reference a known tool data venue', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_GROUNDED);
         for (const card of cards) {
-            const violations = cardContainsNonNZLocations(card);
-            expect(violations).toEqual([]);
+            expect(cardReferencesToolDataVenue(card, knownVenues)).toBe(true);
         }
     });
 
-    it('should detect non-NZ locations in bad response', () => {
-        const cards = extractJson<z.infer<typeof ExperienceCardSchema>[]>(BAD_RESPONSE_NON_NZ);
-        const allViolations = cards.flatMap(card => cardContainsNonNZLocations(card));
-        expect(allViolations.length).toBeGreaterThan(0);
+    it('detects fabricated venue titles not in tool data', () => {
+        const cards = extractJson<Card[]>(BAD_RESPONSE_FABRICATED);
+        const fabricatedCount = cards.filter(card =>
+            titleLikelyFabricated(card.card_title, knownVenues)
+        ).length;
+        // All 3 fabricated cards should be flagged
+        expect(fabricatedCount).toBe(3);
+    });
+
+    it('grounded response titles are not flagged as fabricated', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_GROUNDED);
+        for (const card of cards) {
+            expect(titleLikelyFabricated(card.card_title, knownVenues)).toBe(false);
+        }
+    });
+
+    it('extracts correct venue names from tool data', () => {
+        expect(knownVenues).toContain('Birkenhead RSA');
+        expect(knownVenues).toContain('The Barking Dog Bar & Eatery');
+        expect(knownVenues).toContain('Swashbucklers Restaurant & Bar');
+        expect(knownVenues).toHaveLength(3);
     });
 });
 
-describe('Agent Output: Specificity', () => {
-    it('good response practical fields should contain specific details', () => {
-        const cards = extractJson<z.infer<typeof ExperienceCardSchema>[]>(GOOD_RESPONSE);
+describe('Search Radius Expansion', () => {
+    it('expanded-radius response acknowledges the suburb has limited options', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_EXPANDED_RADIUS);
+        const allText = cards.map(c =>
+            [c.hook, c.context, c.practical, c.insight, c.consider].join(' ')
+        ).join(' ').toLowerCase();
+
+        // Should mention limited options, nearby area, or drive time
+        const hasExpansionSignal =
+            allText.includes('limited') ||
+            allText.includes('nearby') ||
+            allText.includes('drive') ||
+            allText.includes('minute');
+        expect(hasExpansionSignal).toBe(true);
+    });
+
+    it('expanded-radius response mentions a nearby suburb by name', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_EXPANDED_RADIUS);
+        const allText = cards.map(c =>
+            [c.card_title, c.hook, c.context, c.practical, c.insight, c.consider].join(' ')
+        ).join(' ').toLowerCase();
+
+        const nearbySuburbs = ['birkenhead', 'birkdale', 'northcote', 'glenfield', 'highbury'];
+        const mentionsNearby = nearbySuburbs.some(s => allText.includes(s));
+        expect(mentionsNearby).toBe(true);
+    });
+});
+
+describe('NZ-Only Constraint', () => {
+    it('grounded response contains no non-NZ locations', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_GROUNDED);
+        for (const card of cards) {
+            expect(cardContainsNonNZLocations(card)).toEqual([]);
+        }
+    });
+});
+
+describe('Specificity', () => {
+    it('grounded response has specific details in practical field (times, prices, addresses)', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_GROUNDED);
         for (const card of cards) {
             expect(cardHasSpecificity(card)).toBe(true);
         }
     });
 
-    it('vague response should fail specificity check', () => {
-        const cards = extractJson<z.infer<typeof ExperienceCardSchema>[]>(BAD_RESPONSE_VAGUE);
-        const specificCount = cards.filter(card => cardHasSpecificity(card)).length;
-        // Vague cards should have few or no specific details
-        expect(specificCount).toBeLessThan(cards.length);
+    it('fabricated response still has specific-looking details (hallucination can be specific)', () => {
+        // This test documents that specificity alone doesn't catch hallucination —
+        // that's why tool-data grounding is the critical check
+        const cards = extractJson<Card[]>(BAD_RESPONSE_FABRICATED);
+        const hasAnySpecificity = cards.some(card => cardHasSpecificity(card));
+        expect(hasAnySpecificity).toBe(true);
     });
 });
 
-describe('Agent Output: Tone', () => {
-    it('good response should contain no banned phrases', () => {
-        const cards = extractJson<z.infer<typeof ExperienceCardSchema>[]>(GOOD_RESPONSE);
+describe('Tone', () => {
+    it('grounded response contains no banned phrases', () => {
+        const cards = extractJson<Card[]>(GOOD_RESPONSE_GROUNDED);
         for (const card of cards) {
-            const violations = cardContainsBannedPhrases(card);
-            expect(violations).toEqual([]);
+            expect(cardContainsBannedPhrases(card)).toEqual([]);
         }
     });
-
-    it('should detect banned phrases in bad response', () => {
-        const cards = extractJson<z.infer<typeof ExperienceCardSchema>[]>(BAD_RESPONSE_TONE);
-        const allViolations = cards.flatMap(card => cardContainsBannedPhrases(card));
-        expect(allViolations.length).toBeGreaterThan(0);
-    });
 });
 
-describe('Agent Output: extractJson robustness', () => {
-    it('should parse clean JSON array', () => {
-        const result = extractJson<unknown[]>('[{"a": 1}]');
-        expect(result).toEqual([{ a: 1 }]);
+describe('extractJson Robustness', () => {
+    it('parses clean JSON array', () => {
+        expect(extractJson<unknown[]>('[{"a": 1}]')).toEqual([{ a: 1 }]);
     });
 
-    it('should parse JSON with leading/trailing whitespace', () => {
-        const result = extractJson<unknown[]>('  \n  [{"a": 1}]  \n  ');
-        expect(result).toEqual([{ a: 1 }]);
+    it('parses JSON from markdown code block', () => {
+        expect(extractJson<unknown[]>('```json\n[{"a": 1}]\n```')).toEqual([{ a: 1 }]);
     });
 
-    it('should parse JSON from markdown code block', () => {
-        const result = extractJson<unknown[]>('```json\n[{"a": 1}]\n```');
-        expect(result).toEqual([{ a: 1 }]);
+    it('parses JSON with surrounding text', () => {
+        expect(extractJson<unknown[]>('Here:\n[{"a": 1}]\nDone.')).toEqual([{ a: 1 }]);
     });
 
-    it('should parse JSON with surrounding text', () => {
-        const result = extractJson<unknown[]>('Here is the response:\n[{"a": 1}]\nDone.');
-        expect(result).toEqual([{ a: 1 }]);
+    it('throws on completely invalid input', () => {
+        expect(() => extractJson('Not JSON')).toThrow();
     });
 });

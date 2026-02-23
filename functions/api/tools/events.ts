@@ -11,9 +11,9 @@ export async function getEvents(
 ) {
     const nzLocation = ensureNZ(location);
     const objectiveParts = [
-        `Find local events, activities, and things to do in ${nzLocation} during ${dates}.`,
+        `Find local events, activities, and things to do in ${nzLocation} and nearby surrounding areas during ${dates}.`,
         `Include concerts, food & drink events, sports, arts & culture, outdoor events, festivals, and community gatherings.`,
-        `Provide details on dates, times, venues, tickets, and activities.`,
+        `Provide specific venue names, addresses, dates, times, tickets, and activities.`,
     ];
     if (activities) {
         objectiveParts.push(`Focus on events related to: ${activities}.`);

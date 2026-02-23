@@ -11,9 +11,9 @@ export async function getDining(
 ) {
     const nzLocation = ensureNZ(location);
     const objectiveParts = [
-        `Find restaurants and dining options in ${nzLocation}.`,
+        `Find restaurants and dining options in ${nzLocation} and nearby surrounding suburbs (within 10-15 minutes drive).`,
         `Include fine dining, casual restaurants, cafes, bars, seafood, ethnic cuisines, and local favorites.`,
-        `Provide details on menus, prices, hours, reviews, and reservations.`,
+        `Provide specific venue names, addresses, menus, prices, hours, reviews, and reservations.`,
     ];
     if (preferences) {
         objectiveParts.push(`Dining preferences: ${preferences}.`);

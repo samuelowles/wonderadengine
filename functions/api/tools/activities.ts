@@ -11,9 +11,9 @@ export async function getActivities(
 ) {
     const nzLocation = ensureNZ(location);
     const objectiveParts = [
-        `Find local activities, attractions, and experiences in ${nzLocation}.`,
+        `Find local activities, attractions, and experiences in ${nzLocation} and nearby surrounding suburbs (within 10-15 minutes drive).`,
         `Include outdoor adventures, water sports, tours, cultural activities, entertainment, wellness, wildlife, scenic spots, and family-friendly options.`,
-        `Provide details on bookings, schedules, prices, requirements, and activity descriptions.`,
+        `Provide specific venue names, addresses, bookings, schedules, prices, requirements, and activity descriptions.`,
     ];
     if (activityTypes) {
         objectiveParts.push(`Focus on activities related to: ${activityTypes}.`);
