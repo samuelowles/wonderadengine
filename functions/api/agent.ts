@@ -1,5 +1,5 @@
 // Wondura Agent — generates local-knowledge experience cards for New Zealand travel
-// Uses Gemini 3 Flash Preview with Google Search research + Parallel AI enrichment
+// Uses Gemini 2.0 Flash with Google Search for venue research + Parallel AI for enrichment
 import { callGemini, extractJson } from './lib/gemini';
 import { researchVenues } from './lib/research';
 import { RoutingResultSchema } from '../../src/shared/schema';
@@ -12,35 +12,37 @@ import { getDining } from './tools/dining';
 import { getActivities } from './tools/activities';
 import { verifyPrice } from './tools/price';
 
-// ── Wondura Agent Prompt (aligned with 03_prompts.md) ──
+// ── Wondura Agent Prompt ──
 const WONDURA_PROMPT = `You are Wondura, an expert local travel guide modeled on a New Zealand DOC ranger.
 Attributes: Knowledgeable, Kind, Konkrete (Practical), Kredible, Kultural, Klarity.
 
 ### HARD CONSTRAINT: NEW ZEALAND ONLY
-ALL recommendations must be for real, currently operating locations within New Zealand. If the user mentions a non-NZ destination, redirect to a comparable NZ alternative.
+ALL recommendations must be for real, currently operating locations within New Zealand.
 
-### CRITICAL: VERIFIED VENUE LIST IS YOUR ONLY SOURCE
-- You may ONLY recommend venues from the **Verified Venues** list below. These venues have been confirmed via Google Search.
-- If a venue is NOT in the Verified Venues list, you MUST NOT use it. Do not invent venue names.
-- If the Verified Venues list has fewer than 3 venues, still produce cards only for the verified ones. Do not pad with invented venues.
-- Use the enrichment data (weather, events, pricing) to add practical details to your cards.
+### CRITICAL: GOOGLE SEARCH RESEARCH IS YOUR PRIMARY SOURCE
+- Below you will find "Google Search Research" — these are REAL venues confirmed by live Google Search.
+- You MUST pick your 3 venues from the Google Search Research section. Every venue_name you output MUST appear in that research.
+- If a venue is NOT mentioned in the Google Search Research, you MUST NOT recommend it. No exceptions.
+- The research covers a 15-minute driving radius. Venues may be in nearby suburbs — this is normal in NZ, mention the drive time.
+- If the Google Search Research is empty or failed, say so honestly and suggest the user broaden their search.
 
 ### INSTRUCTIONS
-1. Select the 3 best venues from the Verified Venues list based on relevance to the user's request.
-2. Generate exactly 3 Experience Cards using ONLY venues from the verified list.
-3. TONE: Warm but practical. Like a knowledgeable local friend, not a brochure.
+1. Read the Google Search Research carefully. Pick the 3 best venues for the user's request.
+2. Use the Enrichment Data (weather, events, pricing) to add practical context.
+3. For venue_name, use the EXACT name from the Google Search Research — do not rephrase or abbreviate it.
+4. TONE: Warm but practical. Like a knowledgeable local friend, not a brochure.
    - NO: "Hidden gem", "Bucket list", "Unforgettable", "Must-see", "World-class"
-   - YES: Specific venue names, hours, costs, local context
+   - YES: Specific names, hours, costs, local context
 
 ### OUTPUT FORMAT
 Return ONLY a JSON array of exactly 3 objects with these fields:
 [
   {
     "card_title": "Clear, descriptive title — no clickbait",
-    "venue_name": "The exact venue name from the Verified Venues list",
+    "venue_name": "EXACT venue name from Google Search Research",
     "hook": "One sentence capturing what makes this experience special.",
     "context": "Why locals value this. History, culture, or community significance.",
-    "practical": "Hours, cost, location, logistics — use address and rating from verified data. Be specific.",
+    "practical": "Hours, cost, location, logistics from the research. Be specific.",
     "insight": "An authentically local tip or cultural nuance a visitor wouldn't know.",
     "consider": "An honest caveat or alternative (e.g., 'Closed Mondays', 'Book 2 days ahead', '10-min drive from Beach Haven')."
   }
@@ -93,19 +95,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 const apiKey = context.env.GOOGLE_AI_KEY;
                 const parallelKey = context.env.PARALLEL_API_KEY;
 
-                // ── Phase 1: Research venues via Google Search ──
+                // ── Phase 1 & 2: Research + Enrichment (CONCURRENT) ──
                 send('status', { phase: 'researching' });
-                console.log(`[AGENT] Phase 1: Researching venues for "${activities}" in "${location}"`);
+                console.log(`[AGENT] Starting research + enrichment for "${activities}" in "${location}"`);
 
-                const researchResult = await withTimeout(
+                // Research via Google Search
+                const researchPromise = withTimeout(
                     researchVenues(location, activities, apiKey),
-                    15_000,
-                    { venues: [], raw_response: 'Research timed out' }
+                    20_000,
+                    { research_text: 'Research timed out — no venue data available.', success: false }
                 );
 
-                console.log(`[AGENT] Research found ${researchResult.venues.length} verified venues`);
-
-                // ── Phase 2: Enrich with Parallel AI tools (concurrent) ──
+                // Enrichment via Parallel AI (concurrent with research)
                 let toolData: Record<string, unknown> = {
                     weather: null, events: null, dining: null,
                     activities: null, price: null
@@ -114,43 +115,44 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 const TOOL_TIMEOUT = 15_000;
                 const errorFallback = { error: 'Timed out' };
 
+                let enrichPromise: Promise<void> = Promise.resolve();
                 if (parallelKey && parallelKey !== 'your_parallel_api_key_here') {
-                    try {
-                        send('status', { phase: 'searching', tool: 'weather' });
+                    enrichPromise = (async () => {
+                        try {
+                            const toolPromises = [
+                                withTimeout(getWeather(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
+                                withTimeout(getEvents(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
+                                withTimeout(getDining(location, '', parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
+                                withTimeout(getActivities(location, activities, parallelKey, dealmaker, dates), TOOL_TIMEOUT, errorFallback),
+                                withTimeout(verifyPrice(`${activities || 'travel'} experiences in ${location}`, 'N/A', null, parallelKey, dates), TOOL_TIMEOUT, errorFallback as any),
+                            ];
 
-                        const toolPromises = [
-                            withTimeout(getWeather(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
-                            withTimeout(getEvents(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
-                            withTimeout(getDining(location, '', parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
-                            withTimeout(getActivities(location, activities, parallelKey, dealmaker, dates), TOOL_TIMEOUT, errorFallback),
-                            withTimeout(verifyPrice(`${activities || 'travel'} experiences in ${location}`, 'N/A', null, parallelKey, dates), TOOL_TIMEOUT, errorFallback as any),
-                        ];
+                            const toolNames = ['weather', 'events', 'dining', 'activities', 'price'];
+                            const results = await Promise.allSettled(toolPromises);
 
-                        const toolNames = ['weather', 'events', 'dining', 'activities', 'price'];
-                        const results = await Promise.allSettled(toolPromises);
-
-                        for (let i = 0; i < results.length; i++) {
-                            const result = results[i];
-                            if (result.status === 'fulfilled') {
-                                toolData[toolNames[i]] = result.value;
-                            } else {
-                                toolData[toolNames[i]] = { error: String(result.reason) };
+                            for (let i = 0; i < results.length; i++) {
+                                const result = results[i];
+                                if (result.status === 'fulfilled') {
+                                    toolData[toolNames[i]] = result.value;
+                                } else {
+                                    toolData[toolNames[i]] = { error: String(result.reason) };
+                                }
                             }
+                        } catch (e) {
+                            console.error('Tool execution error:', e);
                         }
-                    } catch (e) {
-                        console.error('Tool execution error:', e);
-                    }
+                    })();
                 }
+
+                // Wait for both research and enrichment
+                const [researchResult] = await Promise.all([researchPromise, enrichPromise]);
+
+                console.log(`[AGENT] Research ${researchResult.success ? 'succeeded' : 'failed'} (${researchResult.research_text.length} chars)`);
+                console.log(`[AGENT] Research preview: ${researchResult.research_text.slice(0, 300)}`);
 
                 send('status', { phase: 'generating' });
 
-                // ── Phase 3: Generate cards from verified venues + enrichment ──
-                const verifiedVenueList = researchResult.venues.length > 0
-                    ? researchResult.venues.map((v, i) =>
-                        `${i + 1}. ${v.name} — ${v.type} — ${v.address} — Rating: ${v.rating} — ${v.description} (Source: ${v.source})`
-                    ).join('\n')
-                    : 'No verified venues found. Use enrichment data to find real venues, but be transparent about limited data.';
-
+                // ── Phase 3: Generate cards from grounded research ──
                 const userContext = `
 User Request:
 - Destination: ${extracted.destination ? ensureNZ(extracted.destination) : 'Not specified (default: New Zealand)'}
@@ -158,10 +160,10 @@ User Request:
 - Activities: ${extracted.activity || 'Open to suggestions'}
 - Dealmaker: ${extracted.deal_maker || 'None specified'}
 
-### Verified Venues (confirmed via Google Search):
-${verifiedVenueList}
+### Google Search Research (live search results — your PRIMARY source for venue names):
+${researchResult.research_text || 'No research data available. Be honest with the user that you could not find verified venues.'}
 
-### Enrichment Data:
+### Enrichment Data (supplementary context):
 Weather: ${JSON.stringify(toolData.weather) || 'Unavailable'}
 Events: ${JSON.stringify(toolData.events) || 'Unavailable'}
 Dining: ${JSON.stringify(toolData.dining) || 'Unavailable'}
@@ -169,14 +171,14 @@ Activities: ${JSON.stringify(toolData.activities) || 'Unavailable'}
 Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
 `;
 
-                console.log(`[AGENT] Phase 3: Generating cards with ${researchResult.venues.length} verified venues`);
+                console.log(`[AGENT] Generating cards...`);
 
                 // Call Gemini — force JSON output
                 const response = await callGemini(
                     apiKey,
                     WONDURA_PROMPT,
                     userContext,
-                    { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
+                    { model: 'gemini-2.5-flash', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
                 );
 
                 // Parse and send cards
@@ -184,19 +186,20 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                     const cards = extractJson(response);
                     if (Array.isArray(cards)) {
                         for (const card of cards) {
+                            console.log(`[AGENT] Sending card: "${card.card_title}" (venue: "${card.venue_name}")`);
                             send('card', card);
                         }
-                        console.log(`[AGENT] Sent ${cards.length} cards`);
+                        console.log(`[AGENT] Done — sent ${cards.length} cards`);
                     }
                 } catch (parseError) {
-                    console.error('Failed to parse cards:', parseError, 'Raw:', response.slice(0, 500));
+                    console.error('[AGENT] Failed to parse cards:', parseError, 'Raw:', response.slice(0, 500));
                     send('error', { error: 'Failed to parse experience cards from AI response' });
                 }
 
                 send('done', {});
                 controller.close();
             } catch (error) {
-                console.error('Agent error:', error);
+                console.error('[AGENT] Fatal error:', error);
                 controller.enqueue(encoder.encode(sse('error', { error: String(error) })));
                 controller.close();
             }
