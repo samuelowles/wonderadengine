@@ -4,98 +4,61 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                display: ['"Polymath Display"', 'Georgia', 'serif'],
-                body: ['"Polymath Text"', 'system-ui', 'sans-serif'],
+                display: ['"Polymath Display"', 'sans-serif'], // Use Display for headings
+                body: ['"Polymath Text"', 'sans-serif'],     // Use Text for body
+            },
+            fontWeight: {
+                // Strict weights
+                regular: '400',
+                medium: '500',
+                semibold: '600',
+                bold: '700',
+                heavy: '800',
             },
             colors: {
-                page: '#F7F7F5',
+                page: '#000000', // Mobile app background outside container
                 surface: {
-                    DEFAULT: '#FFFFFF',
-                    elevated: '#FAFAF8',
+                    DEFAULT: '#FFFFFF', // Strict White
+                    subtle: '#F4F4F5',  // Inputs
                 },
                 text: {
-                    primary: '#1A1A1A',
-                    secondary: '#6B6B6B',
-                    muted: '#9CA3AF',
+                    primary: '#000000',
+                    secondary: '#6E6E73', // IOS Gray
+                    muted: '#8E8E93',
                     inverse: '#FFFFFF',
+                    green: '#2E7D32',
                 },
                 brand: {
-                    accent: '#16A34A',
-                    'accent-light': 'rgba(22,163,74,0.12)',
-                    'accent-border': 'rgba(22,163,74,0.2)',
+                    accent: '#2E7D32', // Dark Green
+                    bg: '#E8F5E9',     // Pale Green
                 },
                 cta: {
-                    dark: '#1A1A1A',
-                    'dark-hover': '#2D2D2D',
+                    DEFAULT: '#000000',
+                    hover: '#1A1A1A',
                 },
                 border: {
-                    subtle: 'rgba(0,0,0,0.06)',
-                    card: 'rgba(0,0,0,0.08)',
-                    divider: 'rgba(0,0,0,0.04)',
+                    subtle: '#E5E5EA',
+                    input: 'transparent', // No borders on inputs
                 },
-            },
-            fontSize: {
-                // No letterSpacing — it's built into Polymath
-                'hero': ['36px', { lineHeight: '1.1', fontWeight: '700' }],
-                'h1': ['28px', { lineHeight: '1.15', fontWeight: '700' }],
-                'h2': ['22px', { lineHeight: '1.2', fontWeight: '600' }],
-                'h3': ['18px', { lineHeight: '1.25', fontWeight: '600' }],
-                'body': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
-                'body-sm': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
-                'body-xs': ['13px', { lineHeight: '1.45', fontWeight: '400' }],
-                'caption': ['11px', { lineHeight: '1.3', fontWeight: '600' }],
-                'metric': ['20px', { lineHeight: '1.15', fontWeight: '600' }],
-                'metric-sm': ['15px', { lineHeight: '1.2', fontWeight: '600' }],
-                'badge': ['11px', { lineHeight: '1', fontWeight: '600' }],
-                'button': ['16px', { lineHeight: '1', fontWeight: '600' }],
-                'button-sm': ['13px', { lineHeight: '1', fontWeight: '600' }],
-            },
-            spacing: {
-                'xs': '4px',
-                'sm': '8px',
-                'md': '16px',
-                'lg': '24px',
-                'xl': '32px',
-                '2xl': '48px',
-                '3xl': '64px',
-                'safe-bottom': 'env(safe-area-inset-bottom, 0px)',
             },
             borderRadius: {
-                'card': '28px',
-                'card-inner': '16px',
-                'button': '9999px',
-                'input': '14px',
-                'badge': '9999px',
-                'icon-bg': '12px',
+                'card': '32px',
+                'input': '16px', // Squircle
+                'button': '9999px', // Pill
+                'badge': '9999px', // Pill
             },
             boxShadow: {
-                'rest': '0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.04)',
-                'hover': '0 4px 8px rgba(0,0,0,0.04), 0 12px 28px rgba(0,0,0,0.08)',
-                'glass': '0 8px 32px rgba(0,0,0,0.25)',
-                'nav': '0 -1px 0 rgba(0,0,0,0.04), 0 -8px 24px rgba(0,0,0,0.03)',
+                'premium': '0px 16px 40px rgba(0, 0, 0, 0.2), 0px 4px 12px rgba(0, 0, 0, 0.1)', // The Master Shadow
+                'float': '0 8px 24px rgba(0,0,0,0.12)',
             },
-            keyframes: {
-                'slide-up': {
-                    '0%': { transform: 'translateY(20px)', opacity: '0' },
-                    '100%': { transform: 'translateY(0)', opacity: '1' },
-                },
-                'fade-in': {
-                    '0%': { opacity: '0' },
-                    '100%': { opacity: '1' },
-                },
-                'scale-in': {
-                    '0%': { transform: 'scale(0.95)', opacity: '0' },
-                    '100%': { transform: 'scale(1)', opacity: '1' },
-                },
-            },
-            animation: {
-                'slide-up': 'slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-                'fade-in': 'fade-in 0.35s ease-out forwards',
-                'scale-in': 'scale-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-            },
-            transitionTimingFunction: {
-                'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-            },
+            fontSize: {
+                'h1': ['34px', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '800' }],
+                'h2': ['20px', { lineHeight: '1.2', fontWeight: '700' }],
+                'h3': ['18px', { lineHeight: '1.25', fontWeight: '700' }],
+                'body': ['15px', { lineHeight: '1.5', fontWeight: '400' }],
+                'body-sm': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
+                'micro': ['12px', { lineHeight: '1', letterSpacing: '0.05em', fontWeight: '600', textTransform: 'uppercase' }],
+            }
         },
     },
     plugins: [],

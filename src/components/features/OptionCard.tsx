@@ -29,13 +29,13 @@ export function OptionCard({ option, onSelect, index, isWonduraRecommendation = 
             className="opacity-0 animate-slide-up"
             style={{ animationDelay: `${index * 100}ms` }}
         >
-            <Card>
+            <Card className={isWonduraRecommendation ? 'ring-2 ring-teal-100 shadow-float' : ''}>
                 <div className="p-[24px]">
                     {/* Title + badge row */}
                     <div className="flex items-start justify-between gap-[12px] mb-[4px]">
                         <H3 as="h3">{displayName}</H3>
                         {isWonduraRecommendation && (
-                            <Badge variant="success">Wondura Pick</Badge>
+                            <Badge variant="wondura">Wondura Pick</Badge>
                         )}
                     </div>
 

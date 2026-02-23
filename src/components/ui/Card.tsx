@@ -1,4 +1,5 @@
 import React from 'react';
+import { Badge } from './Badge';
 
 /* ════════════════════════════════════════════
    Base Card
@@ -16,8 +17,8 @@ export function Card({ children, className = '', hoverable = false, onClick }: C
     return (
         <div
             className={`
-                bg-surface rounded-card border border-border-subtle shadow-rest
-                ${hoverable ? 'cursor-pointer transition-shadow duration-300 hover:shadow-hover' : ''}
+                bg-surface rounded-card shadow-premium p-6
+                ${hoverable ? 'cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-float' : ''}
                 ${className}
             `}
             onClick={onClick}
@@ -38,6 +39,7 @@ interface ExperienceCardProps {
     description: string;
     practicalDetails: string;
     animationDelay?: number;
+    badge?: { text: string; variant?: 'success' | 'savings' | 'info' | 'neutral' | 'wondura' };
 }
 
 export function ExperienceCard({
@@ -45,6 +47,7 @@ export function ExperienceCard({
     description,
     practicalDetails,
     animationDelay = 0,
+    badge,
 }: ExperienceCardProps) {
     return (
         <div
@@ -53,17 +56,22 @@ export function ExperienceCard({
         >
             <Card>
                 <div className="p-[24px]">
-                    <h3 className="font-display text-h3 text-text-primary mb-[8px]">
-                        {title}
-                    </h3>
-                    <p className="font-body text-body-sm text-text-secondary mb-[16px] leading-relaxed">
+                    <div className="flex justify-between items-start mb-[8px]">
+                        <h3 className="font-display text-h3 text-text-primary pr-4">
+                            {title}
+                        </h3>
+                        {badge && (
+                            <Badge variant={badge.variant}>{badge.text}</Badge>
+                        )}
+                    </div>
+                    <p className="font-body text-body text-text-secondary mb-[16px] leading-[1.6]">
                         {description}
                     </p>
-                    <div className="pt-[16px] border-t border-border-divider">
-                        <span className="font-body text-body-xs font-medium text-text-muted block mb-[6px]">
-                            Practical Details
+                    <div className="pt-[20px] border-t border-border-subtle">
+                        <span className="font-body text-micro text-text-muted block mb-[8px]">
+                            PRACTICAL DETAILS
                         </span>
-                        <p className="font-body text-body-xs text-text-secondary leading-relaxed">
+                        <p className="font-body text-body-sm text-text-secondary leading-relaxed">
                             {practicalDetails}
                         </p>
                     </div>

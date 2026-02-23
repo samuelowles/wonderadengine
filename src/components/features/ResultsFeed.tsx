@@ -102,6 +102,7 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                     description={card.experience_description}
                     practicalDetails={card.practical_logistics}
                     animationDelay={index * 80}
+                    badge={{ text: 'Open Now', variant: 'success' }}
                 />
             ))}
 

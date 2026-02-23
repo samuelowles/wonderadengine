@@ -2,15 +2,16 @@ import React from 'react';
 
 interface BadgeProps {
     children: React.ReactNode;
-    variant?: 'success' | 'savings' | 'info' | 'neutral';
+    variant?: 'success' | 'savings' | 'info' | 'neutral' | 'wondura';
     className?: string;
 }
 
 const variantStyles: Record<string, string> = {
-    success: 'bg-brand-accent-light text-brand-accent border border-brand-accent-border',
-    savings: 'bg-orange-50 text-orange-600 border border-orange-200',
-    info: 'bg-blue-50 text-blue-600 border border-blue-200',
-    neutral: 'bg-surface-elevated text-text-secondary border border-border-subtle',
+    success: 'bg-brand-bg text-brand-accent', // Pale Green bg, Dark Green text
+    savings: 'bg-orange-50 text-orange-700',
+    info: 'bg-blue-50 text-blue-700',
+    neutral: 'bg-surface-subtle text-text-secondary', // Gray
+    wondura: 'bg-brand-bg text-brand-accent font-bold tracking-wide uppercase text-[11px]', // Special Wondura Badge
 };
 
 export function Badge({ children, variant = 'success', className = '' }: BadgeProps) {

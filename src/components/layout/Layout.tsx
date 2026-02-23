@@ -132,7 +132,7 @@ export function HeroBgLayout({ imageSrc, children, onBack }: HeroBgLayoutProps) 
                     alt=""
                     className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 gradient-hero-dark" />
             </div>
 
             {/* Navigation */}
@@ -147,6 +147,43 @@ export function HeroBgLayout({ imageSrc, children, onBack }: HeroBgLayoutProps) 
             {/* Scrollable content */}
             <div className="relative z-10 min-h-screen px-[24px] pt-[72px] pb-[48px] max-w-lg mx-auto">
                 {children}
+            </div>
+        </div>
+    );
+}
+/* ════════════════════════════════════════════
+   Overlay Layout (Flighty-style modal sheet)
+   Top 40% brand/hero, Bottom 60% white card.
+   The card slides up over the background.
+   ════════════════════════════════════════════ */
+
+interface OverlayLayoutProps {
+    imageSrc: string;
+    children: React.ReactNode;
+}
+
+export function OverlayLayout({ imageSrc, children }: OverlayLayoutProps) {
+    return (
+        <div className="min-h-screen relative flex flex-col">
+            {/* Fixed Background */}
+            <div className="fixed inset-0 z-0">
+                <img
+                    src={imageSrc}
+                    alt=""
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/60" />
+            </div>
+
+            {/* Content Container */}
+            <div className="relative z-10 flex flex-col min-h-screen">
+                {/* Top spacer (brand area lives here in children if needed, or just space) */}
+                <div className="flex-1 min-h-[30vh]" />
+
+                {/* Modal Card */}
+                <div className="bg-surface rounded-t-[32px] shadow-glass animate-slide-up">
+                    {children}
+                </div>
             </div>
         </div>
     );

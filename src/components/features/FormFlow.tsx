@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/Button';
-import { BodySmall, Label } from '../ui/Typography';
-import { FullBgLayout } from '../layout/Layout';
+import { Input } from '../ui/Input';
+import { OverlayLayout } from '../layout/Layout';
 import { Compass } from '../ui/Icons';
 import type { UserQuery } from '../../shared/schema';
 
@@ -31,119 +31,87 @@ export function FormFlow({ onSubmit, isLoading = false, error = null }: FormFlow
         onSubmit(formData);
     };
 
-    const inputClasses = `
-        w-full h-[44px] px-[14px]
-        rounded-input border border-border-subtle bg-surface-elevated
-        text-text-primary placeholder:text-text-muted/40
-        font-body text-body-sm
-        focus:outline-none focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent/30
-        transition-all duration-200
-    `;
-
     return (
-        <FullBgLayout imageSrc="/img/hero-discover.jpg">
-            {/* Brand lockup */}
-            <div className="flex flex-col items-center pt-[32px] pb-[20px] px-[24px]">
-                <Compass size={24} className="text-brand-accent mb-[8px]" />
-                <h1 className="font-display text-h2 text-text-primary mb-[4px]">Wondura</h1>
-                <BodySmall className="text-text-muted text-center">
-                    Curated New Zealand experiences
-                </BodySmall>
-            </div>
-
-            {/* Form */}
-            <div className="flex-1 overflow-y-auto px-[24px] pb-[24px]">
-                {error && (
-                    <div className="mb-[16px] p-[12px] rounded-card-inner bg-red-50 border border-red-200">
-                        <p className="font-body text-body-xs text-red-700">{error}</p>
+        <OverlayLayout imageSrc="/img/hero-discover.jpg">
+            <div className="p-[24px] pb-[32px] w-full max-w-lg mx-auto bg-surface rounded-card shadow-premium">
+                {/* Brand Lockup */}
+                <div className="flex flex-col items-center mb-[24px]">
+                    <div className="mb-[8px] text-brand-accent">
+                        <Compass size={24} />
                     </div>
-                )}
+                    <h1 className="font-display text-h1 text-text-primary text-center mb-[4px]">
+                        Wondura
+                    </h1>
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-[16px]">
-                    <div>
-                        <Label className="mb-[6px]">Where to?</Label>
-                        <input
-                            type="text"
-                            id="destination"
+                    {error && (
+                        <div className="p-4 rounded-[16px] bg-red-50 border border-red-100 text-red-600 text-sm">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Main Inputs */}
+                    <div className="space-y-[16px]">
+                        <Input
                             name="destination"
+                            placeholder="Where to?"
                             value={formData.destination}
                             onChange={handleChange}
-                            placeholder="Queenstown, Wānaka, anywhere..."
-                            className={inputClasses}
                         />
-                    </div>
 
-                    <div>
-                        <Label className="mb-[6px]">When?</Label>
-                        <input
-                            type="text"
-                            id="dates"
+                        <Input
                             name="dates"
+                            placeholder="When?"
                             value={formData.dates}
                             onChange={handleChange}
-                            placeholder="Next weekend, October..."
-                            className={inputClasses}
                         />
-                    </div>
 
-                    <div>
-                        <Label className="mb-[6px]">Activities</Label>
-                        <div className="grid grid-cols-3 gap-[8px]">
-                            <input
-                                type="text"
-                                id="activity1"
+                        {/* Activities: Side-by-side Text Fields */}
+                        <div className="flex gap-[8px]">
+                            <Input
                                 name="activity1"
+                                placeholder="Hiking"
                                 value={formData.activity1}
                                 onChange={handleChange}
-                                placeholder="Hiking"
-                                className={inputClasses}
+                                className="text-center"
                             />
-                            <input
-                                type="text"
-                                id="activity2"
+                            <Input
                                 name="activity2"
+                                placeholder="Wine"
                                 value={formData.activity2}
                                 onChange={handleChange}
-                                placeholder="Wine"
-                                className={inputClasses}
+                                className="text-center"
                             />
-                            <input
-                                type="text"
-                                id="activity3"
+                            <Input
                                 name="activity3"
+                                placeholder="Stars"
                                 value={formData.activity3}
                                 onChange={handleChange}
-                                placeholder="Stars"
-                                className={inputClasses}
+                                className="text-center"
                             />
                         </div>
-                    </div>
 
-                    <div>
-                        <Label className="mb-[6px]">What makes it perfect?</Label>
-                        <input
-                            type="text"
-                            id="dealmaker"
+                        <Input
                             name="dealmaker"
+                            placeholder="What makes it perfect?"
                             value={formData.dealmaker}
                             onChange={handleChange}
-                            placeholder="Great coffee, kid-friendly..."
-                            className={inputClasses}
                         />
                     </div>
 
-                    <div className="pt-[8px]">
+                    <div className="pt-[16px]">
                         <Button
                             type="submit"
-                            variant="dark"
                             size="lg"
                             disabled={isLoading}
+                            className="w-full shadow-float"
                         >
-                            {isLoading ? 'Discovering...' : 'Discover Experiences'}
+                            {isLoading ? 'Curating...' : 'Discover Experiences'}
                         </Button>
                     </div>
                 </form>
             </div>
-        </FullBgLayout>
+        </OverlayLayout>
     );
 }
