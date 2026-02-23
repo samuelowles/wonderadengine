@@ -1,7 +1,10 @@
-import { z } from 'zod';
+// Wondura Agent — generates local-knowledge experience cards for New Zealand travel
+// Uses Gemini 3 Flash Preview with tool data from Parallel AI
 import { callGemini, extractJson } from './lib/gemini';
+import { RoutingResultSchema } from '../../src/shared/schema';
 import { ensureNZ } from './lib/location';
-import { verifyCards } from './lib/verify-cards';
+
+// Tools
 import { getWeather } from './tools/weather';
 import { getEvents } from './tools/events';
 import { getDining } from './tools/dining';
@@ -9,73 +12,33 @@ import { getActivities } from './tools/activities';
 import { verifyPrice } from './tools/price';
 import { verifyVenue } from './tools/venue';
 
-// Request schema
-const RoutingResultSchema = z.object({
-    routing: z.enum(['Details', 'Options_Destinations', 'Options_Activities', 'Options_Both', 'Unknown']),
-    extracted: z.object({
-        activity: z.string().nullable(),
-        destination: z.string().nullable(),
-        date: z.string().nullable(),
-        deal_maker: z.string().nullable(),
-    }),
-});
+// ── Wondura Agent Prompt (aligned with 03_prompts.md) ──
+const WONDURA_PROMPT = `You are Wondura, an expert local travel guide modeled on a New Zealand DOC ranger.
+Attributes: Knowledgeable, Kind, Konkrete (Practical), Kredible, Kultural, Klarity.
 
-// Wondura Agent System Prompt — NZ-mandated with venue verification requirements
-const WONDURA_PROMPT = `You are Wondura, an expert local travel guide agent. Your persona is modeled on a New Zealand Department of Conservation (DOC) ranger: knowledgeable, friendly, helpful, authentic, and practical.
+### HARD CONSTRAINT: NEW ZEALAND ONLY
+ALL recommendations must be for real, currently operating locations within New Zealand. If the user mentions a non-NZ destination, redirect to a comparable NZ alternative.
 
-You do not generate generic itineraries. You generate specific, highly practical, and culturally aware travel experience cards.
+### INSTRUCTIONS
+1. Analyze ALL Tool Data below. If data is missing or unavailable, acknowledge it honestly — do NOT hallucinate or invent venues, prices, addresses, or details.
+2. Generate exactly 3 Experience Cards based on the user's request and the tool data.
+3. Cross-check any prices you mention against the Price Verification data. If no price data is available, say "check venue website for current pricing" instead of guessing.
+4. Confirm recommended venues are open/operational using the Venue Verification data. If a venue shows red flags (closed, renovated), do not recommend it.
+5. Every recommendation must reference a REAL, SPECIFIC place that exists in New Zealand — use information from the Tool Data to ground your recommendations.
+6. TONE: Warm but practical. Like a knowledgeable local friend, not a brochure.
+   - NO: "Hidden gem", "Bucket list", "Unforgettable", "Must-see", "World-class"
+   - YES: Specific venue names, hours, costs, local context
 
-### CRITICAL: NEW ZEALAND ONLY — STRICT GEOGRAPHIC FENCE
-ALL recommendations MUST be for real, currently operating locations within New Zealand. This is a HARD CONSTRAINT with zero tolerance:
-- NEVER recommend any venue, activity, or location outside of New Zealand — not Australia, not Fiji, not anywhere else.
-- NEVER fabricate or invent a venue name. Only recommend places you are confident actually exist in New Zealand right now.
-- If the user asks about a non-NZ destination, redirect them to a comparable NZ alternative (e.g., "Instead of Bali beaches, try…" → recommend a real NZ beach).
-- Prefer well-known, established NZ venues that are easy to verify (e.g., Te Papa, Hobbiton, Milford Sound) over obscure or uncertain ones.
-- Every address you provide MUST end with a New Zealand city/region. If you are not sure of the exact street address, say "Address: check venue website" rather than guessing.
-
-### TONE OF VOICE GUIDELINES (THE 6 K's)
-You must strictly adhere to these 6 core voice attributes:
-
-1. **Knowledgeable**: Speak from genuine understanding. Provide context and cite local expertise.
-2. **Kind**: Warm and approachable, never condescending or fake-friendly.
-3. **Konkrete (Practical)**: Specific details, clear information, actionable advice.
-4. **Kredible**: Honest and transparent. Acknowledge limitations or caveats.
-5. **Kultural**: Respectful of local culture, environment, and community. Use correct terminology (e.g., dual place names).
-6. **Klarity**: Plain language, logical organization, no jargon.
-
-### WORKFLOW SEQUENCE
-1. **Analyze Tool Data**: Use ALL provided tool data to add "Konkrete" accuracy.
-   - **Weather Data**: For packing advice and activity suitability.
-   - **Events Data**: For community gatherings during travel dates.
-   - **Dining Data**: For confirmed operating hours and menu info.
-   - **Activities Data**: For booking availability and current pricing.
-   - **Price Verification**: Cross-check any prices mentioned in your cards against verified pricing data. If price data is available, use it.
-   - **Venue Verification**: Check that any venue you recommend is confirmed open and operational. Flag red flags (closures, renovations) in the "Consider" section.
-2. **Generate Cards**: Create exactly 3 travel experience cards.
-3. **Verify Before Outputting**: Do NOT recommend a venue that Venue Verification flagged as closed. Do NOT cite a price that Price Verification contradicts.
-
-### VENUE ACCURACY REQUIREMENTS
-- Always include the EXACT business/venue name in the "venue_name" field.
-- Always include the full street address in the "venue_address" field (e.g., "123 Marine Parade, Napier, New Zealand").
-- If you do not know the exact street address, provide your best known address and note the uncertainty in the description.
-- Only recommend venues you are confident currently exist and are operating in New Zealand.
-
-### CONTENT STRUCTURE (The PEROT Principle)
-Every card description must follow this flow:
-1. **Hook**: One sentence capturing what makes this special.
-2. **Context**: Why locals value this (history/culture).
-3. **Practical**: Specifics on hours, location, cost, accessibility.
-4. **Insight**: What makes it authentically local.
-5. **Consider**: A helpful caveat or alternative.
-
-### JSON OUTPUT FORMAT (ONLY output this JSON Array)
+### OUTPUT FORMAT
+Return ONLY a JSON array of exactly 3 objects with these fields:
 [
   {
-    "card_title": "Clear, descriptive title (No clickbait)",
-    "venue_name": "The exact business or venue name",
-    "venue_address": "Full street address, Suburb, City, New Zealand",
-    "experience_description": "Friendly, knowledgeable description following the Hook -> Context -> Insight flow (approx 50-70 words).",
-    "practical_logistics": "Seamless integration of booking details, timing, cost estimates, and safety info (e.g., 'Open Tues-Sun, 10am-4pm. $25 entry.'). Use Tool Data here."
+    "card_title": "Clear, descriptive title — no clickbait",
+    "hook": "One sentence capturing what makes this experience special.",
+    "context": "Why locals value this. History, culture, or community significance.",
+    "practical": "Hours, cost, location, logistics — derived from Tool Data. Be specific.",
+    "insight": "An authentically local tip or cultural nuance a visitor wouldn't know.",
+    "consider": "An honest caveat or alternative (e.g., 'Closed Mondays', 'Book 2 days ahead', 'Windy in afternoons')."
   }
 ]`;
 
@@ -126,20 +89,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 const apiKey = context.env.GOOGLE_AI_KEY;
                 const parallelKey = context.env.PARALLEL_API_KEY;
 
-                // ── Tool Execution (with per-tool status + 15s timeout) ──
+                // ── Tool Execution (concurrent, 15s timeout each) ──
                 let toolData: Record<string, unknown> = {
                     weather: null, events: null, dining: null,
                     activities: null, price: null, venue: null
                 };
 
-                const TOOL_TIMEOUT = 15_000; // 15 seconds per tool
+                const TOOL_TIMEOUT = 15_000;
                 const errorFallback = { error: 'Timed out' };
 
                 if (parallelKey && parallelKey !== 'your_parallel_api_key_here') {
                     try {
                         send('status', { phase: 'searching', tool: 'weather' });
 
-                        // Run tools with individual timeouts and status updates
                         const toolPromises = [
                             withTimeout(getWeather(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
                             withTimeout(getEvents(location, dates, parallelKey, dealmaker, activities), TOOL_TIMEOUT, errorFallback),
@@ -150,8 +112,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                         ];
 
                         const toolNames = ['weather', 'events', 'dining', 'activities', 'price', 'venue'];
-
-                        // Execute all concurrently but track completion
                         const results = await Promise.allSettled(toolPromises);
 
                         for (let i = 0; i < results.length; i++) {
@@ -169,7 +129,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
                 send('status', { phase: 'generating' });
 
-                // Build context for agent
+                // Build context for agent — inject all tool data
                 const userContext = `
 User Request:
 - Destination: ${extracted.destination ? ensureNZ(extracted.destination) : 'Not specified (default: New Zealand)'}
@@ -185,7 +145,7 @@ Tool Data (Price): ${JSON.stringify(toolData.price) || 'Unavailable'}
 Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
 `;
 
-                // Call Gemini for experience cards
+                // Call Gemini — force JSON output
                 const response = await callGemini(
                     apiKey,
                     WONDURA_PROMPT,
@@ -193,48 +153,17 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                     { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
                 );
 
-                // Parse response and run verification gate
+                // Parse and send cards directly — no post-LLM verification gate
                 try {
                     const cards = extractJson(response);
                     if (Array.isArray(cards)) {
-                        // ── Post-LLM Verification Gate ──
-                        send('status', { phase: 'verifying' });
-
-                        const verifiedCards = await verifyCards(
-                            cards,
-                            location,
-                            dates,
-                            parallelKey || ''
-                        );
-
-                        for (const card of verifiedCards) {
+                        for (const card of cards) {
                             send('card', card);
-                        }
-
-                        // If all cards were filtered out, send a notice
-                        if (verifiedCards.length === 0 && cards.length > 0) {
-                            send('card', {
-                                card_title: 'Verification Notice',
-                                venue_name: null,
-                                venue_address: null,
-                                experience_description: 'We could not verify the venues for the recommendations generated. Please try a different destination or activity.',
-                                practical_logistics: 'Our verification system checks that recommended venues are real, open, and at the correct address.',
-                                verification_status: 'unverified',
-                                verification_note: 'All generated recommendations failed venue verification',
-                            });
                         }
                     }
                 } catch (parseError) {
-                    console.error('Failed to parse cards:', parseError);
-                    send('card', {
-                        card_title: 'Experience Recommendation',
-                        venue_name: null,
-                        venue_address: null,
-                        experience_description: response.slice(0, 300) + '...',
-                        practical_logistics: 'Unable to parse structured data. See description above.',
-                        verification_status: 'unverified',
-                        verification_note: 'Response could not be parsed for verification',
-                    });
+                    console.error('Failed to parse cards:', parseError, 'Raw:', response.slice(0, 500));
+                    send('error', { error: 'Failed to parse experience cards from AI response' });
                 }
 
                 send('done', {});

@@ -49,9 +49,7 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                             if (event === 'status') {
                                 const msg = data.phase === 'searching'
                                     ? `Searching ${data.tool || ''}...`
-                                    : data.phase === 'verifying'
-                                        ? 'Verifying venues...'
-                                        : 'Curating experiences...';
+                                    : 'Curating experiences...';
                                 setStatus(msg);
                             } else if (event === 'card') {
                                 setCards(prev => [...prev, data as ExperienceCardType]);
@@ -98,24 +96,18 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
             )}
 
             {/* Experience cards — content visible (v1 style) */}
-            {cards.map((card, index) => {
-                const badgeConfig = (card as any).verification_status === 'verified'
-                    ? { text: 'Verified', variant: 'success' as const }
-                    : (card as any).verification_status === 'failed'
-                        ? { text: 'Not Verified', variant: 'neutral' as const }
-                        : undefined;
-
-                return (
-                    <ExperienceCard
-                        key={index}
-                        title={card.card_title}
-                        description={card.experience_description}
-                        practicalDetails={card.practical_logistics}
-                        animationDelay={index * 80}
-                        badge={badgeConfig}
-                    />
-                );
-            })}
+            {cards.map((card, index) => (
+                <ExperienceCard
+                    key={index}
+                    title={card.card_title}
+                    hook={card.hook}
+                    context={card.context}
+                    practical={card.practical}
+                    insight={card.insight}
+                    consider={card.consider}
+                    animationDelay={index * 80}
+                />
+            ))}
 
             {/* Done indicator */}
             {cards.length > 0 && !status && (

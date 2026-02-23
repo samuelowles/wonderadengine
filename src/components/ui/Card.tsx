@@ -1,5 +1,4 @@
 import React from 'react';
-import { Badge } from './Badge';
 
 /* ════════════════════════════════════════════
    Base Card
@@ -29,25 +28,28 @@ export function Card({ children, className = '', hoverable = false, onClick }: C
 }
 
 /* ════════════════════════════════════════════
-   Experience Card — Content-visible card
-   Shows title, description, and practical details
-   directly on the card (v1 style).
+   Experience Card — 5-field local knowledge card
+   Renders hook, context, practical, insight, consider
    ════════════════════════════════════════════ */
 
 interface ExperienceCardProps {
     title: string;
-    description: string;
-    practicalDetails: string;
+    hook: string;
+    context: string;
+    practical: string;
+    insight: string;
+    consider: string;
     animationDelay?: number;
-    badge?: { text: string; variant?: 'success' | 'savings' | 'info' | 'neutral' | 'wondura' };
 }
 
 export function ExperienceCard({
     title,
-    description,
-    practicalDetails,
+    hook,
+    context,
+    practical,
+    insight,
+    consider,
     animationDelay = 0,
-    badge,
 }: ExperienceCardProps) {
     return (
         <div
@@ -56,23 +58,44 @@ export function ExperienceCard({
         >
             <Card>
                 <div className="p-[24px]">
-                    <div className="flex justify-between items-start mb-[8px]">
-                        <h3 className="font-display text-h3 text-text-primary pr-4">
-                            {title}
-                        </h3>
-                        {badge && (
-                            <Badge variant={badge.variant}>{badge.text}</Badge>
-                        )}
-                    </div>
-                    <p className="font-body text-body text-text-secondary mb-[16px] leading-[1.6]">
-                        {description}
+                    {/* Title */}
+                    <h3 className="font-display text-h3 text-text-primary mb-[8px]">
+                        {title}
+                    </h3>
+
+                    {/* Hook — italic opener */}
+                    <p className="font-body text-body text-text-secondary italic mb-[12px] leading-[1.6]">
+                        {hook}
                     </p>
-                    <div className="pt-[20px] border-t border-border-subtle">
-                        <span className="font-body text-micro text-text-muted block mb-[8px]">
+
+                    {/* Context — why locals value this */}
+                    <p className="font-body text-body text-text-secondary mb-[16px] leading-[1.6]">
+                        {context}
+                    </p>
+
+                    {/* Practical details */}
+                    <div className="pt-[16px] border-t border-border-subtle">
+                        <span className="font-body text-micro text-text-muted block mb-[6px]">
                             PRACTICAL DETAILS
                         </span>
                         <p className="font-body text-body-sm text-text-secondary leading-relaxed">
-                            {practicalDetails}
+                            {practical}
+                        </p>
+                    </div>
+
+                    {/* Local insight */}
+                    <div className="mt-[12px] pl-[12px] border-l-2 border-accent/30">
+                        <p className="font-body text-body-sm text-text-secondary leading-relaxed">
+                            <span className="font-medium text-text-primary">Local tip: </span>
+                            {insight}
+                        </p>
+                    </div>
+
+                    {/* Consider — honest caveat */}
+                    <div className="mt-[12px]">
+                        <p className="font-body text-body-xs text-text-muted leading-relaxed">
+                            <span className="font-medium">Consider: </span>
+                            {consider}
                         </p>
                     </div>
                 </div>
