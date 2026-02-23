@@ -36,6 +36,9 @@
         "src",
         "functions"
     ],
+    "exclude": [
+        "functions/api/__tests__"
+    ],
     "references": [
         {
             "path": "./tsconfig.node.json"
