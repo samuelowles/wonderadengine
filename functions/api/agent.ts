@@ -23,8 +23,8 @@ ALL recommendations must be for real, currently operating locations within New Z
 - Below you will find "Google Search Research" — these are REAL venues confirmed by live Google Search.
 - You MUST pick your 3 venues from the Google Search Research section. Every venue_name you output MUST appear in that research.
 - If a venue is NOT mentioned in the Google Search Research, you MUST NOT recommend it. No exceptions.
-- The research covers a 15-minute driving radius. Venues may be in nearby suburbs — this is normal in NZ, mention the drive time.
-- If the Google Search Research is empty or failed, say so honestly and suggest the user broaden their search.
+- The research already covers a 15-minute driving radius including nearby suburbs. Present these as natural local recommendations — do NOT tell the user to "try a broader area" or "search nearby suburbs". Just recommend the best matches and mention which suburb they're in.
+- If the Google Search Research is empty or failed, apologise and say you couldn't find matching venues right now.
 
 ### INSTRUCTIONS
 1. Read the Google Search Research carefully. Pick the 3 best venues for the user's request.
@@ -38,7 +38,7 @@ ALL recommendations must be for real, currently operating locations within New Z
 Return ONLY a JSON array of exactly 3 objects with these fields:
 [
   {
-    "card_title": "Clear, descriptive title — no clickbait",
+    "card_title": "Title that includes the venue name (e.g. 'Smash Burgers at Real Burger' or 'The Barking Dog — Northcote's Best Pub Grub')",
     "venue_name": "EXACT venue name from Google Search Research",
     "hook": "One sentence capturing what makes this experience special.",
     "context": "Why locals value this. History, culture, or community significance.",
@@ -178,7 +178,7 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                     apiKey,
                     WONDURA_PROMPT,
                     userContext,
-                    { model: 'gemini-2.5-flash', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
+                    { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
                 );
 
                 // Parse and send cards
