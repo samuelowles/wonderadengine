@@ -47,9 +47,12 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                             const data = JSON.parse(dataMatch[1]);
 
                             if (event === 'status') {
-                                setStatus(data.phase === 'searching'
+                                const msg = data.phase === 'searching'
                                     ? `Searching ${data.tool || ''}...`
-                                    : 'Curating experiences...');
+                                    : data.phase === 'verifying'
+                                        ? 'Verifying venues...'
+                                        : 'Curating experiences...';
+                                setStatus(msg);
                             } else if (event === 'card') {
                                 setCards(prev => [...prev, data as ExperienceCardType]);
                                 setStatus('');
@@ -95,16 +98,24 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
             )}
 
             {/* Experience cards — content visible (v1 style) */}
-            {cards.map((card, index) => (
-                <ExperienceCard
-                    key={index}
-                    title={card.card_title}
-                    description={card.experience_description}
-                    practicalDetails={card.practical_logistics}
-                    animationDelay={index * 80}
-                    badge={{ text: 'Open Now', variant: 'success' }}
-                />
-            ))}
+            {cards.map((card, index) => {
+                const badgeConfig = (card as any).verification_status === 'verified'
+                    ? { text: 'Verified', variant: 'success' as const }
+                    : (card as any).verification_status === 'failed'
+                        ? { text: 'Not Verified', variant: 'neutral' as const }
+                        : undefined;
+
+                return (
+                    <ExperienceCard
+                        key={index}
+                        title={card.card_title}
+                        description={card.experience_description}
+                        practicalDetails={card.practical_logistics}
+                        animationDelay={index * 80}
+                        badge={badgeConfig}
+                    />
+                );
+            })}
 
             {/* Done indicator */}
             {cards.length > 0 && !status && (

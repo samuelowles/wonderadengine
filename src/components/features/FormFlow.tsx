@@ -71,21 +71,21 @@ export function FormFlow({ onSubmit, isLoading = false, error = null }: FormFlow
                         <div className="flex gap-[8px]">
                             <Input
                                 name="activity1"
-                                placeholder="Hiking"
+                                placeholder="Activity #1"
                                 value={formData.activity1}
                                 onChange={handleChange}
                                 className="text-center"
                             />
                             <Input
                                 name="activity2"
-                                placeholder="Wine"
+                                placeholder="Activity #2"
                                 value={formData.activity2}
                                 onChange={handleChange}
                                 className="text-center"
                             />
                             <Input
                                 name="activity3"
-                                placeholder="Stars"
+                                placeholder="Activity #3"
                                 value={formData.activity3}
                                 onChange={handleChange}
                                 className="text-center"

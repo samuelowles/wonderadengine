@@ -58,7 +58,16 @@ export default {
                 'body': ['15px', { lineHeight: '1.5', fontWeight: '400' }],
                 'body-sm': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
                 'micro': ['12px', { lineHeight: '1', letterSpacing: '0.05em', fontWeight: '600', textTransform: 'uppercase' }],
-            }
+            },
+            keyframes: {
+                'slide-up': {
+                    '0%': { opacity: '0', transform: 'translateY(16px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+            },
+            animation: {
+                'slide-up': 'slide-up 0.4s ease-out forwards',
+            },
         },
     },
     plugins: [],
