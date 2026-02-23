@@ -190,7 +190,7 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                     apiKey,
                     WONDURA_PROMPT,
                     userContext,
-                    { model: 'gemini-2.5-flash', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
+                    { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
                 );
 
                 // Parse response and run verification gate
