@@ -188,6 +188,11 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                     try {
                         send('status', { phase: 'verifying' });
 
+                        console.log(`[VERIFY] Parsed ${parsedCards.length} cards. Extracting venue names...`);
+                        for (const c of parsedCards) {
+                            console.log(`[VERIFY]   card_title: "${c.card_title}", venue_name: "${c.venue_name || '(none)'}"`);
+                        }
+
                         const venuesToVerify = parsedCards
                             .map(c => ({
                                 name: c.venue_name || c.card_title || '',
@@ -195,6 +200,8 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                                 location,
                             }))
                             .filter(v => v.name);
+
+                        console.log(`[VERIFY] Will verify ${venuesToVerify.length} venues:`, venuesToVerify.map(v => v.name));
 
                         // 3 parallel Gemini + Google Search calls, 8s timeout
                         const verificationResults = await withTimeout(
@@ -207,6 +214,11 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                                 summary: 'Verification timed out',
                             }))
                         );
+
+                        console.log(`[VERIFY] Got ${verificationResults.length} results:`);
+                        for (const r of verificationResults) {
+                            console.log(`[VERIFY]   ${r.exists ? '✅' : '❌'} "${r.venue_name}" — ${r.confidence} — ${r.summary.slice(0, 100)}`);
+                        }
 
                         for (let i = 0; i < verificationResults.length; i++) {
                             const result = verificationResults[i];
@@ -221,6 +233,7 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                                 });
                             } else {
                                 // DROP unverified cards
+                                console.log(`[VERIFY] DROPPING card: "${cardTitle}" (venue: "${result.venue_name}")`);
                                 send('drop', {
                                     venue_name: result.venue_name,
                                     card_title: cardTitle,

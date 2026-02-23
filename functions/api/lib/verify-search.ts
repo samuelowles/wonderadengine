@@ -19,6 +19,7 @@ export async function verifyVenueViaSearch(
     apiKey: string
 ): Promise<SearchVerificationResult> {
     try {
+        console.log(`[VERIFY] Searching for: "${venueName}" in ${location}`);
         const prompt = `Does "${venueName}" exist as a real, currently operating restaurant, bar, cafe, or business in or near ${location}, New Zealand? 
 
 Answer with ONLY one of these exact formats:
@@ -31,9 +32,11 @@ Answer with ONLY one of these exact formats:
             maxOutputTokens: 200,
         });
 
+        console.log(`[VERIFY] Raw response for "${venueName}": ${response.trim()}`);
         const trimmed = response.trim().toUpperCase();
 
         if (trimmed.startsWith('YES')) {
+            console.log(`[VERIFY] ✅ VERIFIED: "${venueName}"`);
             return {
                 venue_name: venueName,
                 exists: true,
@@ -41,6 +44,7 @@ Answer with ONLY one of these exact formats:
                 summary: response.trim(),
             };
         } else if (trimmed.startsWith('NO')) {
+            console.log(`[VERIFY] ❌ NOT FOUND: "${venueName}"`);
             return {
                 venue_name: venueName,
                 exists: false,
@@ -48,6 +52,7 @@ Answer with ONLY one of these exact formats:
                 summary: response.trim(),
             };
         } else {
+            console.log(`[VERIFY] ⚠️ UNCERTAIN (treating as not found): "${venueName}" — response: ${trimmed.slice(0, 100)}`);
             return {
                 venue_name: venueName,
                 exists: false,
