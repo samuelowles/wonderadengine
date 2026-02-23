@@ -407,6 +407,41 @@ describe('extractJson Robustness', () => {
     it('throws on completely invalid input', () => {
         expect(() => extractJson('Not JSON')).toThrow();
     });
+
+    // Thinking model responses — JSON may come after reasoning text
+    it('parses JSON that follows thinking/reasoning text', () => {
+        const thinkingResponse = `The user wants burgers near Beach Haven. Let me pick 3 venues from the research...
+
+[{"card_title": "Smash Burgers at Real Burger", "venue_name": "Real Burger", "hook": "Great burgers", "context": "Local spot", "practical": "Open daily", "insight": "Try the double", "consider": "Can be busy"}]`;
+        const result = extractJson<unknown[]>(thinkingResponse);
+        expect(Array.isArray(result)).toBe(true);
+        expect(result).toHaveLength(1);
+    });
+
+    it('parses JSON array with newlines and whitespace from structured output', () => {
+        const structuredResponse = `[
+  {
+    "card_title": "Test Venue",
+    "venue_name": "Test",
+    "hook": "hook",
+    "context": "ctx",
+    "practical": "prac",
+    "insight": "ins",
+    "consider": "con"
+  }
+]`;
+        const result = extractJson<unknown[]>(structuredResponse);
+        expect(Array.isArray(result)).toBe(true);
+        expect(result[0]).toHaveProperty('card_title', 'Test Venue');
+    });
+
+    it('handles empty string gracefully', () => {
+        expect(() => extractJson('')).toThrow();
+    });
+
+    it('handles response with only whitespace', () => {
+        expect(() => extractJson('   \n\n  ')).toThrow();
+    });
 });
 
 // ── Research Module Tests ──

@@ -43,11 +43,33 @@ export async function callGemini(
         throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+    const data = await response.json() as {
+        candidates?: Array<{
+            content?: {
+                parts?: Array<{ text?: string; thought?: boolean }>
+            }
+        }>
+    };
 
-    // Extract text from response
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    // Extract text from response — skip 'thought' parts (thinking models like gemini-3-flash-preview)
+    const parts = data.candidates?.[0]?.content?.parts;
+    if (!parts || parts.length === 0) {
+        console.error('[GEMINI] No parts in response:', JSON.stringify(data).slice(0, 500));
+        throw new Error('No parts in Gemini response');
+    }
+
+    // Filter to non-thought text parts, then join
+    const textParts = parts.filter(p => p.text && !p.thought);
+    const text = textParts.map(p => p.text).join('');
+
     if (!text) {
+        // If ALL parts are thoughts (shouldn't happen with responseMimeType), try all parts
+        const allText = parts.filter(p => p.text).map(p => p.text).join('');
+        if (allText) {
+            console.warn('[GEMINI] Only thought parts found, using them as fallback');
+            return allText;
+        }
+        console.error('[GEMINI] No text parts found. Parts:', JSON.stringify(parts).slice(0, 500));
         throw new Error('No text in Gemini response');
     }
 
