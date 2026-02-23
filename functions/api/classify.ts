@@ -86,7 +86,7 @@ Dealmaker: ${dealmaker || 'Not specified'}
             apiKey,
             CLASSIFIER_PROMPT,
             userMessage,
-            { model: 'gemini-3-flash-preview', temperature: 0.0 }
+            { model: 'gemini-2.5-flash', temperature: 0.0, responseMimeType: 'application/json' }
         );
 
         // Parse and validate the response

@@ -71,7 +71,7 @@ Recommend 2 destinations with 2 activities each.
             apiKey,
             BOTH_PROMPT,
             userMessage,
-            { model: 'gemini-3-flash-preview', temperature: 0.2 }
+            { model: 'gemini-2.5-flash', temperature: 0.2, responseMimeType: 'application/json' }
         );
 
         const result = extractJson(response);

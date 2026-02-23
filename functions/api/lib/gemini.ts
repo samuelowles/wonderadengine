@@ -4,9 +4,10 @@ const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models
 
 
 interface GeminiConfig {
-    model: 'gemini-2.0-flash' | 'gemini-3-flash-preview' | 'gemini-2.5-flash' | 'gemini-1.5-flash' | 'gemini-1.5-pro';
+    model: 'gemini-2.0-flash' | 'gemini-2.5-flash' | 'gemini-1.5-flash' | 'gemini-1.5-pro';
     temperature?: number;
     maxOutputTokens?: number;
+    responseMimeType?: string;
 }
 
 export async function callGemini(
@@ -31,6 +32,7 @@ export async function callGemini(
             generationConfig: {
                 temperature: config.temperature ?? 0.4,
                 maxOutputTokens: config.maxOutputTokens ?? 2048,
+                ...(config.responseMimeType ? { responseMimeType: config.responseMimeType } : {}),
             }
         })
     });
@@ -56,7 +58,12 @@ export async function callGemini(
 export function extractJson<T>(text: string): T {
     const trimmed = text.trim();
 
-    // Try to find JSON in code blocks first
+    // 1. Direct parse — works when responseMimeType is set
+    try {
+        return JSON.parse(trimmed);
+    } catch (_) { /* continue */ }
+
+    // 2. Try to find JSON in markdown code blocks
     const codeBlockMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlockMatch) {
         try {
@@ -66,22 +73,22 @@ export function extractJson<T>(text: string): T {
         }
     }
 
-    // Try to find the first '{' or '[' and match to the last '}' or ']'
-    const jsonMatch = trimmed.match(/([\[\{][\s\S]*[\]\}])/);
-    if (jsonMatch) {
-        try {
-            return JSON.parse(jsonMatch[1]);
-        } catch (e) {
-            console.error('Failed to parse regex-matched JSON', e);
+    // 3. Find first '[' or '{' and last matching ']' or '}'
+    const firstBracket = trimmed.search(/[\[\{]/);
+    if (firstBracket !== -1) {
+        const opener = trimmed[firstBracket];
+        const closer = opener === '[' ? ']' : '}';
+        const lastBracket = trimmed.lastIndexOf(closer);
+        if (lastBracket > firstBracket) {
+            try {
+                return JSON.parse(trimmed.slice(firstBracket, lastBracket + 1));
+            } catch (e) {
+                console.error('Failed to parse bracket-matched JSON', e);
+            }
         }
     }
 
-    // Last resort: try to parse the entire trimmed text
-    try {
-        return JSON.parse(trimmed);
-    } catch (e) {
-        throw new Error('No valid JSON found in response');
-    }
+    throw new Error(`No valid JSON found in response: ${trimmed.slice(0, 200)}`);
 }
 
 // Streaming version for agent endpoint
