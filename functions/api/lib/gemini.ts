@@ -56,14 +56,15 @@ export async function callGemini(
 
 /**
  * Call Gemini with Google Search grounding enabled.
- * Uses gemini-2.0-flash for fast, grounded venue verification.
+ * Uses gemini-2.5-flash for grounded venue research.
+ * Note: google_search tool requires a model that supports it.
  */
 export async function callGeminiWithSearch(
     apiKey: string,
     prompt: string,
     config?: { temperature?: number; maxOutputTokens?: number }
 ): Promise<string> {
-    const model = 'gemini-2.0-flash';
+    const model = 'gemini-2.5-flash';
     const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {

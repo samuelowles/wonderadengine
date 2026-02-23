@@ -441,5 +441,5 @@ describe.skipIf(!API_KEY)('Live Venue Research (Google Search)', () => {
         const mentionsKnown = knownVenues.some(v => textLower.includes(v));
         expect(mentionsKnown).toBe(true);
         console.log('Research text preview:', result.research_text.slice(0, 300));
-    }, 30_000);
+    }, 60_000);
 });
