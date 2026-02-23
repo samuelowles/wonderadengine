@@ -334,3 +334,54 @@ describe('extractJson Robustness', () => {
         expect(() => extractJson('Not JSON')).toThrow();
     });
 });
+
+// ── Integration Tests: Live Venue Verification via Google Search ──
+// These tests call the real Gemini API with Google Search grounding.
+// Only run when GOOGLE_AI_KEY env var is set.
+const API_KEY = process.env.GOOGLE_AI_KEY || '';
+
+import { verifyVenueViaSearch, verifyVenuesBatchViaSearch } from '../lib/verify-search';
+
+describe.skipIf(!API_KEY)('Live Venue Verification (Google Search)', () => {
+    const REAL_VENUES = [
+        { name: 'Real Burger', location: 'Birkenhead, Auckland' },
+        { name: 'Birkenhead RSA', location: 'Birkenhead, Auckland' },
+        { name: 'The Barking Dog Bar & Eatery', location: 'Northcote, Auckland' },
+    ];
+
+    const FABRICATED_VENUES = [
+        { name: 'Beach Bites Takeaway', location: 'Beach Haven, Auckland' },
+        { name: 'General Public Burgers & Fries', location: 'Beach Haven, Auckland' },
+        { name: 'Tai Kahi Smash Burgers', location: 'Beach Haven, Auckland' },
+    ];
+
+    it('confirms real NZ venues exist via Google Search', async () => {
+        const results = await Promise.all(
+            REAL_VENUES.map(v => verifyVenueViaSearch(v.name, v.location, API_KEY))
+        );
+
+        for (const result of results) {
+            expect(result.exists).toBe(true);
+            expect(result.confidence).not.toBe('none');
+        }
+    }, 30_000);
+
+    it('flags fabricated venues as non-existent via Google Search', async () => {
+        const results = await Promise.all(
+            FABRICATED_VENUES.map(v => verifyVenueViaSearch(v.name, v.location, API_KEY))
+        );
+
+        const fabricatedCount = results.filter(r => !r.exists).length;
+        // At least 2 of 3 fabricated venues should fail verification
+        expect(fabricatedCount).toBeGreaterThanOrEqual(2);
+    }, 30_000);
+});
+
+// ── Unit Tests: Verify-Search Module Logic ──
+describe('SearchVerificationResult parsing', () => {
+    it('verifyVenueViaSearch module exports correctly', () => {
+        expect(typeof verifyVenueViaSearch).toBe('function');
+        expect(typeof verifyVenuesBatchViaSearch).toBe('function');
+    });
+});
+

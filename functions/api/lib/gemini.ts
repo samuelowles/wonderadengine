@@ -54,6 +54,52 @@ export async function callGemini(
     return text;
 }
 
+/**
+ * Call Gemini with Google Search grounding enabled.
+ * Uses gemini-2.0-flash for fast, grounded venue verification.
+ */
+export async function callGeminiWithSearch(
+    apiKey: string,
+    prompt: string,
+    config?: { temperature?: number; maxOutputTokens?: number }
+): Promise<string> {
+    const model = 'gemini-2.0-flash';
+    const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{
+                role: 'user',
+                parts: [{ text: prompt }]
+            }],
+            tools: [{ google_search: {} }],
+            generationConfig: {
+                temperature: config?.temperature ?? 0.1,
+                maxOutputTokens: config?.maxOutputTokens ?? 512,
+            }
+        })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini Search API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+    const text = data.candidates?.[0]?.content?.parts
+        ?.filter((p: { text?: string }) => p.text)
+        .map((p: { text?: string }) => p.text)
+        .join('\n');
+
+    if (!text) {
+        throw new Error('No text in Gemini Search response');
+    }
+
+    return text;
+}
+
 // Extract JSON from Gemini response (handles markdown code blocks)
 export function extractJson<T>(text: string): T {
     const trimmed = text.trim();

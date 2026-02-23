@@ -49,11 +49,18 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                             if (event === 'status') {
                                 const msg = data.phase === 'searching'
                                     ? `Searching ${data.tool || ''}...`
-                                    : 'Curating experiences...';
+                                    : data.phase === 'verifying'
+                                        ? 'Verifying venues...'
+                                        : 'Curating experiences...';
                                 setStatus(msg);
                             } else if (event === 'card') {
                                 setCards(prev => [...prev, data as ExperienceCardType]);
                                 setStatus('');
+                            } else if (event === 'drop') {
+                                // Remove unverified card by matching card_title
+                                setCards(prev => prev.filter(c => c.card_title !== data.venue_name));
+                            } else if (event === 'verified') {
+                                // Card confirmed — could add a verified badge later
                             } else if (event === 'error') {
                                 setError(data.error);
                             } else if (event === 'done') {

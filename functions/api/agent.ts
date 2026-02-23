@@ -11,6 +11,7 @@ import { getDining } from './tools/dining';
 import { getActivities } from './tools/activities';
 import { verifyPrice } from './tools/price';
 import { verifyVenue } from './tools/venue';
+import { verifyVenuesBatchViaSearch } from './lib/verify-search';
 
 // ── Wondura Agent Prompt (aligned with 03_prompts.md) ──
 const WONDURA_PROMPT = `You are Wondura, an expert local travel guide modeled on a New Zealand DOC ranger.
@@ -28,6 +29,8 @@ ALL recommendations must be for real, currently operating locations within New Z
   3. Be transparent: say something like "Beach Haven itself has limited burger options, but a 10-minute drive to Birkenhead opens up several great spots."
 - If the Tool Data returns errors or empty results for ALL tools, say so honestly. Recommend the user try a broader area or different activity.
 - NEVER guess at addresses. If an address is not in the Tool Data, say "check venue website for address" or omit it.
+- PREFER venues that appear MULTIPLE times across Tool Data results, or have Google ratings/reviews mentioned. These are more likely to be real.
+- A venue mentioned in one vague result with no address or rating is LESS trustworthy than one appearing in multiple results with specific details.
 
 ### INSTRUCTIONS
 1. Analyze ALL Tool Data below. Extract real venue names, addresses, hours, and prices ONLY from this data.
@@ -162,10 +165,12 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                     { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
                 );
 
-                // Parse and send cards directly — no post-LLM verification gate
+                // Parse and send cards immediately — no blocking verification
+                let parsedCards: Array<Record<string, string>> = [];
                 try {
                     const cards = extractJson(response);
                     if (Array.isArray(cards)) {
+                        parsedCards = cards;
                         for (const card of cards) {
                             send('card', card);
                         }
@@ -173,6 +178,52 @@ Tool Data (Venue): ${JSON.stringify(toolData.venue) || 'Unavailable'}
                 } catch (parseError) {
                     console.error('Failed to parse cards:', parseError, 'Raw:', response.slice(0, 500));
                     send('error', { error: 'Failed to parse experience cards from AI response' });
+                }
+
+                // ── Post-stream venue verification via Gemini + Google Search ──
+                // Runs AFTER cards are sent — zero impact on time-to-first-card
+                // Unverified cards are DROPPED
+                if (parsedCards.length > 0 && apiKey) {
+                    try {
+                        send('status', { phase: 'verifying' });
+
+                        const venuesToVerify = parsedCards.map(c => ({
+                            name: c.card_title || '',
+                            location,
+                        })).filter(v => v.name);
+
+                        // 3 parallel Gemini + Google Search calls, 8s timeout
+                        const verificationResults = await withTimeout(
+                            verifyVenuesBatchViaSearch(venuesToVerify, apiKey),
+                            8000,
+                            venuesToVerify.map(v => ({
+                                venue_name: v.name,
+                                exists: false,
+                                confidence: 'none' as const,
+                                summary: 'Verification timed out',
+                            }))
+                        );
+
+                        for (const result of verificationResults) {
+                            if (result.exists) {
+                                send('verified', {
+                                    venue_name: result.venue_name,
+                                    verified: true,
+                                    confidence: result.confidence,
+                                    summary: result.summary,
+                                });
+                            } else {
+                                // DROP unverified cards
+                                send('drop', {
+                                    venue_name: result.venue_name,
+                                    reason: result.summary,
+                                });
+                            }
+                        }
+                    } catch (verifyError) {
+                        console.error('Post-stream verification error:', verifyError);
+                        // Non-fatal — cards already sent, just no verification
+                    }
                 }
 
                 send('done', {});
