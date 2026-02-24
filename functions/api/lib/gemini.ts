@@ -43,36 +43,42 @@ export async function callGemini(
         throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json() as {
-        candidates?: Array<{
-            content?: {
-                parts?: Array<{ text?: string; thought?: boolean }>
-            }
-        }>
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await response.json() as any;
 
-    // Extract text from response — skip 'thought' parts (thinking models like gemini-3-flash-preview)
-    const parts = data.candidates?.[0]?.content?.parts;
+    // Log full response structure for debugging
+    const candidate = data.candidates?.[0];
+    if (!candidate) {
+        console.error('[GEMINI] No candidates in response:', JSON.stringify(data).slice(0, 500));
+        throw new Error('No candidates in Gemini response — possible content filter or quota error');
+    }
+
+    if (candidate.finishReason && candidate.finishReason !== 'STOP') {
+        console.error(`[GEMINI] Unexpected finishReason: ${candidate.finishReason}`);
+    }
+
+    const parts = candidate.content?.parts;
     if (!parts || parts.length === 0) {
-        console.error('[GEMINI] No parts in response:', JSON.stringify(data).slice(0, 500));
+        console.error('[GEMINI] No parts in candidate:', JSON.stringify(candidate).slice(0, 500));
         throw new Error('No parts in Gemini response');
     }
 
-    // Filter to non-thought text parts, then join
-    const textParts = parts.filter(p => p.text && !p.thought);
-    const text = textParts.map(p => p.text).join('');
+    // Log part structure for debugging
+    console.log(`[GEMINI] Response has ${parts.length} part(s), keys: ${parts.map((p: any) => Object.keys(p).join(',')).join(' | ')}`);
+
+    // Extract text from all parts that have a text field
+    // (thoughtSignature is just metadata, not a separate part type)
+    const text = parts
+        .filter((p: any) => typeof p.text === 'string')
+        .map((p: any) => p.text)
+        .join('');
 
     if (!text) {
-        // If ALL parts are thoughts (shouldn't happen with responseMimeType), try all parts
-        const allText = parts.filter(p => p.text).map(p => p.text).join('');
-        if (allText) {
-            console.warn('[GEMINI] Only thought parts found, using them as fallback');
-            return allText;
-        }
-        console.error('[GEMINI] No text parts found. Parts:', JSON.stringify(parts).slice(0, 500));
+        console.error('[GEMINI] No text in any parts. Parts:', JSON.stringify(parts).slice(0, 500));
         throw new Error('No text in Gemini response');
     }
 
+    console.log(`[GEMINI] Extracted ${text.length} chars of text`);
     return text;
 }
 

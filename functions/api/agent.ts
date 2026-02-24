@@ -150,6 +150,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 console.log(`[AGENT] Research ${researchResult.success ? 'succeeded' : 'failed'} (${researchResult.research_text.length} chars)`);
                 console.log(`[AGENT] Research preview: ${researchResult.research_text.slice(0, 300)}`);
 
+                // If research failed entirely, bail out with a clear error
+                if (!researchResult.success || researchResult.research_text.length < 50) {
+                    console.error('[AGENT] Research failed or too short — cannot generate grounded cards');
+                    send('error', { error: 'Could not find venues right now. Please try again in a moment.' });
+                    send('done', {});
+                    controller.close();
+                    return;
+                }
+
                 send('status', { phase: 'generating' });
 
                 // ── Phase 3: Generate cards from grounded research ──
@@ -161,7 +170,7 @@ User Request:
 - Dealmaker: ${extracted.deal_maker || 'None specified'}
 
 ### Google Search Research (live search results — your PRIMARY source for venue names):
-${researchResult.research_text || 'No research data available. Be honest with the user that you could not find verified venues.'}
+${researchResult.research_text}
 
 ### Enrichment Data (supplementary context):
 Weather: ${JSON.stringify(toolData.weather) || 'Unavailable'}
@@ -172,27 +181,44 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
 `;
 
                 console.log(`[AGENT] Generating cards...`);
+                console.log(`[AGENT] Research text length: ${researchResult.research_text.length}`);
 
                 // Call Gemini — force JSON output
-                const response = await callGemini(
-                    apiKey,
-                    WONDURA_PROMPT,
-                    userContext,
-                    { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
-                );
+                let response: string;
+                try {
+                    response = await callGemini(
+                        apiKey,
+                        WONDURA_PROMPT,
+                        userContext,
+                        { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
+                    );
+                    console.log(`[AGENT] Gemini response length: ${response.length}`);
+                    console.log(`[AGENT] Gemini response preview: ${response.slice(0, 300)}`);
+                } catch (geminiError) {
+                    console.error('[AGENT] Gemini API call failed:', geminiError);
+                    send('error', { error: `Gemini API error: ${String(geminiError)}` });
+                    send('done', {});
+                    controller.close();
+                    return;
+                }
 
                 // Parse and send cards
                 try {
                     const cards = extractJson(response);
+                    console.log(`[AGENT] extractJson returned type: ${typeof cards}, isArray: ${Array.isArray(cards)}`);
                     if (Array.isArray(cards)) {
                         for (const card of cards) {
                             console.log(`[AGENT] Sending card: "${card.card_title}" (venue: "${card.venue_name}")`);
                             send('card', card);
                         }
                         console.log(`[AGENT] Done — sent ${cards.length} cards`);
+                    } else {
+                        console.error('[AGENT] extractJson returned non-array:', JSON.stringify(cards).slice(0, 200));
+                        send('error', { error: 'AI response was not an array of cards' });
                     }
                 } catch (parseError) {
-                    console.error('[AGENT] Failed to parse cards:', parseError, 'Raw:', response.slice(0, 500));
+                    console.error('[AGENT] Failed to parse cards:', parseError);
+                    console.error('[AGENT] Raw response:', response.slice(0, 1000));
                     send('error', { error: 'Failed to parse experience cards from AI response' });
                 }
 
