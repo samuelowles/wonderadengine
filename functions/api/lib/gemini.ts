@@ -106,7 +106,7 @@ export async function callGeminiWithSearch(
             tools: [{ google_search: {} }],
             generationConfig: {
                 temperature: config?.temperature ?? 0.1,
-                maxOutputTokens: config?.maxOutputTokens ?? 512,
+                maxOutputTokens: config?.maxOutputTokens ?? 4096,
             }
         })
     });
