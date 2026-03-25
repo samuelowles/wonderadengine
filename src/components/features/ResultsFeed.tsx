@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ExperienceCard } from '../ui/Card';
+import { LoadingScreen } from '../layout/LoadingScreen';
 import { H2, Body, BodySmall, BodyXS, SectionHeader } from '../ui/Typography';
 import type { ExperienceCard as ExperienceCardType } from '../../shared/schema';
 import type { RoutingResult } from '../../shared/schema';
@@ -84,10 +85,17 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
 
     return (
         <div className="space-y-[16px]">
-            {/* Loading */}
-            {status && (
-                <div className="flex items-center gap-[12px] py-[32px] justify-center">
-                    <div className="w-[20px] h-[20px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            {/* Initial Loading State */}
+            {cards.length === 0 && status && (
+                <div className="py-[10vh]">
+                    <LoadingScreen status={status} inline={true} />
+                </div>
+            )}
+
+            {/* Incremental Loading State (when some cards exist but still fetching) */}
+            {cards.length > 0 && status && (
+                <div className="flex items-center gap-[12px] py-[24px] justify-center animate-pulse">
+                    <div className="w-[16px] h-[16px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     <BodySmall className="text-white/70">{status}</BodySmall>
                 </div>
             )}
@@ -97,7 +105,7 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                 <SectionHeader className="text-white/50">Your Experiences</SectionHeader>
             )}
 
-            {/* Experience cards — content visible (v1 style) */}
+            {/* Experience cards */}
             {cards.map((card, index) => (
                 <ExperienceCard
                     key={index}
@@ -108,6 +116,7 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                     insight={card.insight}
                     consider={card.consider}
                     animationDelay={index * 80}
+                    isPremium={index === 0}
                 />
             ))}
 

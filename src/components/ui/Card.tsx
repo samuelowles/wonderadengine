@@ -1,4 +1,5 @@
 import React from 'react';
+import { Badge } from './Badge';
 
 /* ════════════════════════════════════════════
    Base Card
@@ -16,7 +17,8 @@ export function Card({ children, className = '', hoverable = false, onClick }: C
     return (
         <div
             className={`
-                bg-surface rounded-card shadow-premium p-6
+                bg-surface rounded-card shadow-premium overflow-hidden p-6
+                ${onClick ? 'cursor-pointer press-scale' : ''}
                 ${hoverable ? 'cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-float' : ''}
                 ${className}
             `}
@@ -40,6 +42,7 @@ interface ExperienceCardProps {
     insight: string;
     consider: string;
     animationDelay?: number;
+    isPremium?: boolean;
 }
 
 export function ExperienceCard({
@@ -50,17 +53,23 @@ export function ExperienceCard({
     insight,
     consider,
     animationDelay = 0,
+    isPremium = false,
 }: ExperienceCardProps) {
     return (
         <div
             className="opacity-0 animate-slide-up"
             style={{ animationDelay: `${animationDelay}ms` }}
         >
-            <Card>
-                    {/* Title */}
-                    <h3 className="font-display text-h3 text-text-primary mb-[8px]">
-                        {title}
-                    </h3>
+            <Card className={isPremium ? 'ring-2 ring-teal-100 shadow-float' : ''}>
+                    {/* Title + Premium Badge */}
+                    <div className="flex items-start justify-between gap-[12px] mb-[8px]">
+                        <h3 className="font-display text-h3 text-text-primary">
+                            {title}
+                        </h3>
+                        {isPremium && (
+                            <Badge variant="premium">Wondura Pick</Badge>
+                        )}
+                    </div>
 
                     {/* Hook — italic opener */}
                     <p className="font-body text-body text-text-secondary italic mb-[12px] leading-[1.6]">

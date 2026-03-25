@@ -109,7 +109,7 @@ export async function callGeminiWithSearch(
     const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000); // 25s abort
+    const timeout = setTimeout(() => controller.abort(), 55000); // 55s abort
 
     let response: Response;
     try {

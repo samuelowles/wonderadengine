@@ -80,7 +80,7 @@ export function Layout({ children, showHeader = true, className = '', onBack }: 
    ════════════════════════════════════════════ */
 
 interface ImmersiveLayoutProps {
-    imageSrc: string;
+    imageSrc?: string;
     children: React.ReactNode;
     onBack?: () => void;
 }
@@ -143,7 +143,7 @@ export function FullBgLayout({ imageSrc, children }: FullBgLayoutProps) {
    ════════════════════════════════════════════ */
 
 interface HeroBgLayoutProps {
-    imageSrc: string;
+    imageSrc?: string;
     children: React.ReactNode;
     onBack?: () => void;
 }
