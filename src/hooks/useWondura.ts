@@ -5,6 +5,7 @@ type Phase = 'splash' | 'form' | 'loading' | 'results' | 'options';
 
 interface WonduraState {
     phase: Phase;
+    query: UserQuery | null;
     routingResult: RoutingResult | null;
     options: OptionItem[];
     error: string | null;
@@ -12,14 +13,15 @@ interface WonduraState {
 
 export function useWondura() {
     const [state, setState] = useState<WonduraState>({
-        phase: 'form',
+        phase: 'splash',
+        query: null,
         routingResult: null,
         options: [],
         error: null,
     });
 
     const submitQuery = useCallback(async (query: UserQuery) => {
-        setState(prev => ({ ...prev, phase: 'loading', error: null }));
+        setState(prev => ({ ...prev, phase: 'loading', error: null, query }));
 
         try {
             // Step 1: Classify the query
@@ -91,7 +93,8 @@ export function useWondura() {
 
     const reset = useCallback(() => {
         setState({
-            phase: 'form',
+            phase: 'splash',
+            query: null,
             routingResult: null,
             options: [],
             error: null,

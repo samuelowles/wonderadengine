@@ -9,6 +9,7 @@ import { useWondura } from './hooks/useWondura'
 function App() {
     const {
         phase,
+        query,
         routingResult,
         options,
         error,
@@ -34,20 +35,15 @@ function App() {
         );
     }
 
-    /* ── Loading ── Branded Microcopy */
-    if (phase === 'loading') {
-        return <LoadingScreen />;
-    }
-
-    /* ── Results ── Cards on single hero background */
-    if (phase === 'results' && routingResult) {
-        const destination = routingResult.extracted.destination || 'New Zealand';
-        const timeframe = routingResult.extracted.date || 'Next Weekend';
-        const dealmaker = routingResult.extracted.deal_maker || 'Unforgettable';
+    /* ── Loading & Results ── Unified Hero Layout */
+    if (phase === 'loading' || phase === 'results') {
+        const destination = routingResult?.extracted.destination || query?.destination || 'New Zealand';
+        const timeframe = routingResult?.extracted.date || query?.dates || 'Next Weekend';
+        const dealmaker = routingResult?.extracted.deal_maker || query?.dealmaker || '';
         return (
             <HeroBgLayout onBack={reset}>
-                {/* Semantic Top Header */}
-                <div className="mb-[32px]">
+                {/* 1. Semantic Title Block (Pinned top-left) */}
+                <div className="mb-[16px]">
                     <h1 className="font-display font-bold text-[28px] text-white tracking-[-0.03em] mb-[4px] lowercase">
                         {destination}
                     </h1>
@@ -61,7 +57,15 @@ function App() {
                         )}
                     </div>
                 </div>
-                <ResultsFeed routingResult={routingResult} />
+
+                {/* 2. Content below Title Block */}
+                {phase === 'loading' ? (
+                    <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh] -mt-[60px]">
+                        <LoadingScreen inline />
+                    </div>
+                ) : (
+                    routingResult && <ResultsFeed routingResult={routingResult} />
+                )}
             </HeroBgLayout>
         );
     }
