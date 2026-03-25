@@ -90,7 +90,7 @@ Dealmaker: ${dealmaker || 'Not specified'}
         );
 
         // Parse and validate the response
-        const result = extractJson(response);
+        const result = extractJson(response.text);
         const validated = ClassificationSchema.safeParse(result);
 
         if (!validated.success) {

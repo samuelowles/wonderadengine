@@ -79,7 +79,7 @@ Recommend 3 best activities.
                 justification: string;
             }>;
         }
-        const result = extractJson<ActivitiesResponse>(response);
+        const result = extractJson<ActivitiesResponse>(response.text);
 
         // Transform to options format
         const activities = result.activities || [];

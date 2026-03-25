@@ -74,7 +74,7 @@ Recommend 2 destinations with 2 activities each.
             { model: 'gemini-3-flash-preview', temperature: 0.2, responseMimeType: 'application/json' }
         );
 
-        const result = extractJson(response);
+        const result = extractJson(response.text);
 
         return new Response(JSON.stringify(result), {
             status: 200,

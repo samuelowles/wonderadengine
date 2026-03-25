@@ -79,7 +79,7 @@ Recommend 3 best destinations.
                 image_query: string;
             }>;
         }
-        const result = extractJson<DestinationsResponse>(response);
+        const result = extractJson<DestinationsResponse>(response.text);
 
         // Transform to options format
         const destinations = result.destinations || [];
