@@ -41,43 +41,38 @@ function App() {
         const destination = tripTitle || routingResult?.extracted.destination || query?.destination || 'New Zealand';
         const timeframe = routingResult?.extracted.date || query?.dates || 'Next Weekend';
         const dealmaker = routingResult?.extracted.deal_maker || query?.dealmaker || '';
+        const isTitleLoading = !tripTitle && phase === 'loading';
+
         return (
             <HeroBgLayout onBack={reset}>
-                {phase === 'loading' ? (
-                    <div className="flex flex-col h-[calc(100vh-160px)]">
-                        {/* 1. Top Offset block pushing the Semantic Title precisely to the optical center */}
-                        <div className="flex-1" />
+                {/* Unified content wrapper that blurs EVERYTHING (Title + Loader) during semantic generation */}
+                <div className={`transition-all duration-1000 ease-in-out ${isTitleLoading ? 'blur-md opacity-40 scale-[0.98]' : 'blur-0 opacity-100 scale-100'}`}>
+                    
+                    {/* Constant Spacer pushing the title to the exact vertical center */}
+                    <div className="h-[30vh] w-full shrink-0" />
 
-                        {/* 2. Semantic Title Block (Anchored in absolute center during load) */}
-                        <div className="shrink-0 mb-[16px] w-full">
-                            <h1 className="font-display font-bold text-[28px] text-white tracking-[-0.03em] mb-[4px]">
-                                {destination}
-                            </h1>
-                            <div className="flex justify-between w-full items-center font-body text-[15px] font-medium text-white/80">
-                                <span className="capitalize">{timeframe}</span>
-                                {dealmaker && <span className="capitalize">{dealmaker}</span>}
-                            </div>
-                        </div>
-
-                        {/* 3. DOC Ranger loader centered perfectly underneath the Semantic Header */}
-                        <div className="flex-1 flex flex-col items-center justify-center">
-                            <LoadingScreen inline />
+                    {/* 1. Semantic Title Block */}
+                    <div className="mb-[24px] relative z-40 w-full transition-transform duration-700">
+                        <h1 className="font-display font-bold text-[64px] leading-none text-white tracking-[-0.03em] mb-[12px]">
+                            {destination}
+                        </h1>
+                        <div className="flex justify-between w-full items-center font-body text-[18px] font-medium text-white/80">
+                            <span className="capitalize">{timeframe}</span>
+                            {dealmaker && <span className="capitalize">{dealmaker}</span>}
                         </div>
                     </div>
-                ) : (
-                    <>
-                        <div className="mb-[16px] w-full">
-                            <h1 className="font-display font-bold text-[28px] text-white tracking-[-0.03em] mb-[4px]">
-                                {destination}
-                            </h1>
-                            <div className="flex justify-between w-full items-center font-body text-[15px] font-medium text-white/80">
-                                <span className="capitalize">{timeframe}</span>
-                                {dealmaker && <span className="capitalize">{dealmaker}</span>}
+
+                    {/* 2. Content below Title Block */}
+                    <div className="relative z-40 w-full">
+                        {phase === 'loading' ? (
+                            <div className="h-[25vh] flex flex-col items-center justify-center">
+                                <LoadingScreen inline />
                             </div>
-                        </div>
-                        {routingResult && <ResultsFeed routingResult={routingResult} />}
-                    </>
-                )}
+                        ) : (
+                            routingResult && <ResultsFeed routingResult={routingResult} />
+                        )}
+                    </div>
+                </div>
             </HeroBgLayout>
         );
     }
