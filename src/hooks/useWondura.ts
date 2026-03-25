@@ -81,7 +81,7 @@ export function useWondura() {
             routing: 'Details',
             extracted: {
                 destination: option.name,
-                activity: null,
+                activity: state.routingResult?.extracted.activity || null,
                 date: state.routingResult?.extracted.date || null,
                 deal_maker: state.routingResult?.extracted.deal_maker || null,
             },

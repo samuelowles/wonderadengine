@@ -51,7 +51,7 @@ function App() {
     if (phase === 'results' && routingResult) {
         const destination = routingResult.extracted.destination || 'New Zealand';
         return (
-            <HeroBgLayout imageSrc="/img/hero-detail.jpg" onBack={reset}>
+            <HeroBgLayout imageSrc="/img/DTS_Chill Dudes_by_Daniel Faro╠Ç_015.jpg" onBack={reset}>
                 <div className="mb-[24px]">
                     <HeroTitle className="mb-[4px]">{destination}</HeroTitle>
                     <BodySmall className="text-white/50">

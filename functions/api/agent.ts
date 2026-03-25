@@ -34,6 +34,16 @@ ALL recommendations must be for real, currently operating locations within New Z
    - NO: "Hidden gem", "Bucket list", "Unforgettable", "Must-see", "World-class"
    - YES: Specific names, hours, costs, local context
 
+### RECOMMENDATION MIX
+You must return exactly 3 options that meet these structural rules:
+- Option 1 MUST be the absolute best fit for the user's specific requirements, regardless of whether it is mainstream or obscure.
+- Out of the 3 total options, at least one MUST be a well-known, mainstream recommendation.
+- Out of the 3 total options, at least one MUST be a "travel-like-a-local" hidden gem or authentic neighborhood favorite.
+
+### HALLUCINATION PREVENTION
+- If weather or practical info is NOT explicitly stated in the Enrichment Data (or if it says "Unavailable"), DO NOT guess or hallucinate it. Simply state "Data unavailable".
+- DO NOT hallucinate addresses or drive times. Use ONLY the exact details provided in the Google Search Research.
+
 ### OUTPUT FORMAT
 Return ONLY a JSON array of exactly 3 objects with these fields:
 [
@@ -51,6 +61,7 @@ Return ONLY a JSON array of exactly 3 objects with these fields:
 interface Env {
     GOOGLE_AI_KEY: string;
     PARALLEL_API_KEY: string;
+    LANGSMITH_API_KEY?: string;
 }
 
 /** Wrap a promise with a timeout. Returns fallback on timeout. */
@@ -72,16 +83,28 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const stream = new ReadableStream({
         async start(controller) {
             const send = (event: string, data: unknown) => {
-                controller.enqueue(encoder.encode(sse(event, data)));
+                try {
+                    controller.enqueue(encoder.encode(sse(event, data)));
+                } catch (e) { /* ignore broken pipe if client disconnects */ }
             };
+            const keepAlive = setInterval(() => send('ping', { timestamp: Date.now() }), 4000);
 
             try {
+                // Setup process.env for LangSmith tracing on Cloudflare
+                if (typeof (globalThis as any).process === 'undefined') {
+                    (globalThis as any).process = { env: {} };
+                }
+                (globalThis as any).process.env.LANGSMITH_API_KEY = context.env.LANGSMITH_API_KEY || '';
+                (globalThis as any).process.env.LANGSMITH_TRACING = 'true';
+                (globalThis as any).process.env.LANGSMITH_PROJECT = 'wondura-engine';
+
                 // Parse request
                 const body = await context.request.json();
                 const parsed = RoutingResultSchema.safeParse(body);
 
                 if (!parsed.success) {
                     send('error', { error: 'Invalid input' });
+                    clearInterval(keepAlive);
                     controller.close();
                     return;
                 }
@@ -155,6 +178,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                     console.error('[AGENT] Research failed or too short — cannot generate grounded cards');
                     send('error', { error: 'Could not find venues right now. Please try again in a moment.' });
                     send('done', {});
+                    clearInterval(keepAlive);
                     controller.close();
                     return;
                 }
@@ -198,6 +222,7 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                     console.error('[AGENT] Gemini API call failed:', geminiError);
                     send('error', { error: `Gemini API error: ${String(geminiError)}` });
                     send('done', {});
+                    clearInterval(keepAlive);
                     controller.close();
                     return;
                 }
@@ -223,10 +248,12 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                 }
 
                 send('done', {});
+                clearInterval(keepAlive);
                 controller.close();
             } catch (error) {
                 console.error('[AGENT] Fatal error:', error);
-                controller.enqueue(encoder.encode(sse('error', { error: String(error) })));
+                send('error', { error: String(error) });
+                clearInterval(keepAlive);
                 controller.close();
             }
         }
