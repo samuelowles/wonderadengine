@@ -31,14 +31,14 @@ export function LoadingScreen({ status, inline = false }: LoadingScreenProps) {
             {/* Rotating Microcopy or Status */}
             <div className="h-[40px] relative w-full overflow-hidden">
                 {status ? (
-                    <h2 className="absolute inset-0 w-full font-display font-bold text-[28px] text-white drop-shadow-md transition-all duration-300 opacity-100 transform translate-y-0">
+                    <h2 className="absolute inset-0 w-full font-display font-bold text-[28px] text-white transition-all duration-300 opacity-100 transform translate-y-0">
                         {status}
                     </h2>
                 ) : (
                     loadingPhrases.map((phrase, idx) => (
                         <h2 
                             key={idx}
-                            className={`absolute inset-0 w-full font-display font-bold text-[28px] text-white drop-shadow-md transition-all duration-300 ${
+                            className={`absolute inset-0 w-full font-display font-bold text-[28px] text-white transition-all duration-300 ${
                                 idx === phraseIndex 
                                     ? 'opacity-100 transform translate-y-0' 
                                     : 'opacity-0 transform translate-y-4'
@@ -50,8 +50,8 @@ export function LoadingScreen({ status, inline = false }: LoadingScreenProps) {
                 )}
             </div>
 
-            <span className="font-body text-micro text-white/50 tracking-widest mt-[8px]">
-                WONDURA ENGINE
+            <span className="font-body text-[14px] text-white/50 tracking-wide mt-[8px]">
+                explore the real New Zealand
             </span>
         </div>
     );

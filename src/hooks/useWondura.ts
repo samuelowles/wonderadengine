@@ -6,6 +6,7 @@ type Phase = 'splash' | 'form' | 'loading' | 'results' | 'options';
 interface WonduraState {
     phase: Phase;
     query: UserQuery | null;
+    tripTitle: string | null;
     routingResult: RoutingResult | null;
     options: OptionItem[];
     error: string | null;
@@ -15,13 +16,28 @@ export function useWondura() {
     const [state, setState] = useState<WonduraState>({
         phase: 'splash',
         query: null,
+        tripTitle: null,
         routingResult: null,
         options: [],
         error: null,
     });
 
     const submitQuery = useCallback(async (query: UserQuery) => {
-        setState(prev => ({ ...prev, phase: 'loading', error: null, query }));
+        setState(prev => ({ ...prev, phase: 'loading', error: null, query, tripTitle: null }));
+
+        // Fire and forget Semantic Title Generation via Gemini 3
+        fetch('/api/title', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query),
+        })
+        .then(res => res.json())
+        .then((data: any) => {
+            if (data?.title) {
+                setState(prev => ({ ...prev, tripTitle: data.title }));
+            }
+        })
+        .catch(err => console.error('Failed to generate trip title', err));
 
         try {
             // Step 1: Classify the query
@@ -95,6 +111,7 @@ export function useWondura() {
         setState({
             phase: 'splash',
             query: null,
+            tripTitle: null,
             routingResult: null,
             options: [],
             error: null,

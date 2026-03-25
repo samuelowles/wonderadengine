@@ -10,6 +10,7 @@ function App() {
     const {
         phase,
         query,
+        tripTitle,
         routingResult,
         options,
         error,
@@ -37,34 +38,45 @@ function App() {
 
     /* ── Loading & Results ── Unified Hero Layout */
     if (phase === 'loading' || phase === 'results') {
-        const destination = routingResult?.extracted.destination || query?.destination || 'New Zealand';
+        const destination = tripTitle || routingResult?.extracted.destination || query?.destination || 'New Zealand';
         const timeframe = routingResult?.extracted.date || query?.dates || 'Next Weekend';
         const dealmaker = routingResult?.extracted.deal_maker || query?.dealmaker || '';
         return (
             <HeroBgLayout onBack={reset}>
-                {/* 1. Semantic Title Block (Pinned top-left) */}
-                <div className="mb-[16px]">
-                    <h1 className="font-display font-bold text-[28px] text-white tracking-[-0.03em] mb-[4px] lowercase">
-                        {destination}
-                    </h1>
-                    <div className="flex items-center gap-[8px] font-body text-[15px] font-medium text-white/50">
-                        <span className="capitalize">{timeframe}</span>
-                        {dealmaker && (
-                            <>
-                                <span className="text-white/30">•</span>
-                                <span className="capitalize">{dealmaker}</span>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {/* 2. Content below Title Block */}
                 {phase === 'loading' ? (
-                    <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh] -mt-[60px]">
-                        <LoadingScreen inline />
+                    <div className="flex flex-col h-[calc(100vh-160px)]">
+                        {/* 1. Top Offset block pushing the Semantic Title precisely to the optical center */}
+                        <div className="flex-1" />
+
+                        {/* 2. Semantic Title Block (Anchored in absolute center during load) */}
+                        <div className="shrink-0 mb-[16px] w-full">
+                            <h1 className="font-display font-bold text-[28px] text-white tracking-[-0.03em] mb-[4px]">
+                                {destination}
+                            </h1>
+                            <div className="flex justify-between w-full items-center font-body text-[15px] font-medium text-white/80">
+                                <span className="capitalize">{timeframe}</span>
+                                {dealmaker && <span className="capitalize">{dealmaker}</span>}
+                            </div>
+                        </div>
+
+                        {/* 3. DOC Ranger loader centered perfectly underneath the Semantic Header */}
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                            <LoadingScreen inline />
+                        </div>
                     </div>
                 ) : (
-                    routingResult && <ResultsFeed routingResult={routingResult} />
+                    <>
+                        <div className="mb-[16px] w-full">
+                            <h1 className="font-display font-bold text-[28px] text-white tracking-[-0.03em] mb-[4px]">
+                                {destination}
+                            </h1>
+                            <div className="flex justify-between w-full items-center font-body text-[15px] font-medium text-white/80">
+                                <span className="capitalize">{timeframe}</span>
+                                {dealmaker && <span className="capitalize">{dealmaker}</span>}
+                            </div>
+                        </div>
+                        {routingResult && <ResultsFeed routingResult={routingResult} />}
+                    </>
                 )}
             </HeroBgLayout>
         );
