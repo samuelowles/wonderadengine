@@ -20,6 +20,7 @@ export async function getWeather(
     if (dealmaker) {
         objectiveParts.push(`Their priority is: ${dealmaker}.`);
     }
+    objectiveParts.push('Exclude aggregator sites by appending: -viator -tripadvisor -alltrails -getyourguide -expedia. Prioritize local blogs, official websites, and authentic local sources.');
 
     const response = await fetch('https://api.parallel.ai/v1beta/search', {
         method: 'POST',

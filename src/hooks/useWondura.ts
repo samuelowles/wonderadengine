@@ -12,7 +12,7 @@ interface WonduraState {
 
 export function useWondura() {
     const [state, setState] = useState<WonduraState>({
-        phase: 'splash',
+        phase: 'form',
         routingResult: null,
         options: [],
         error: null,
@@ -91,7 +91,7 @@ export function useWondura() {
 
     const reset = useCallback(() => {
         setState({
-            phase: 'splash',
+            phase: 'form',
             routingResult: null,
             options: [],
             error: null,

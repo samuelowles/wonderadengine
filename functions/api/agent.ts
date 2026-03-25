@@ -2,6 +2,7 @@
 // Uses Gemini 2.0 Flash with Google Search for venue research + Parallel AI for enrichment
 import { callGemini, extractJson } from './lib/gemini';
 import { researchVenues } from './lib/research';
+import { sanitizeParallelResponse } from './lib/sanitize';
 import { RoutingResultSchema } from '../../src/shared/schema';
 import { ensureNZ } from './lib/location';
 import { LangSmithTracer } from './lib/tracing';
@@ -124,7 +125,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
                 // Research via Google Search
                 const researchPromise = withTimeout(
-                    researchVenues(location, activities, apiKey),
+                    researchVenues(location, activities, apiKey, dealmaker, dates),
                     60_000,
                     { research_text: 'Research timed out — no venue data available.', success: false }
                 );
@@ -219,11 +220,11 @@ User Request:
 ${researchResult.research_text}
 
 ### Enrichment Data (supplementary context):
-Weather: ${JSON.stringify(toolData.weather) || 'Unavailable'}
-Events: ${JSON.stringify(toolData.events) || 'Unavailable'}
-Dining: ${JSON.stringify(toolData.dining) || 'Unavailable'}
-Activities: ${JSON.stringify(toolData.activities) || 'Unavailable'}
-Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
+Weather: ${JSON.stringify(sanitizeParallelResponse(toolData.weather)) || 'Unavailable'}
+Events: ${JSON.stringify(sanitizeParallelResponse(toolData.events)) || 'Unavailable'}
+Dining: ${JSON.stringify(sanitizeParallelResponse(toolData.dining)) || 'Unavailable'}
+Activities: ${JSON.stringify(sanitizeParallelResponse(toolData.activities)) || 'Unavailable'}
+Pricing: ${JSON.stringify(sanitizeParallelResponse(toolData.price)) || 'Unavailable'}
 `;
 
                 console.log(`[AGENT] Generating cards...`);

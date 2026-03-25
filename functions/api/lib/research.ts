@@ -17,11 +17,14 @@ export interface ResearchResult {
 export async function researchVenues(
     location: string,
     activity: string,
-    apiKey: string
+    apiKey: string,
+    dealmaker?: string,
+    dates?: string
 ): Promise<ResearchResult> {
-    const searchQuery = activity
-        ? `${activity} near ${location} New Zealand`
-        : `restaurants cafes bars things to do near ${location} New Zealand`;
+    const activityStr = activity || 'things to do';
+    const dealmakerStr = dealmaker ? ` ${dealmaker}` : '';
+    const datesStr = dates && dates !== 'upcoming' && dates !== 'Flexible' ? ` ${dates}` : '';
+    const searchQuery = `${activityStr} near ${location} New Zealand${dealmakerStr}${datesStr}`;
 
     const prompt = `Search Google for: ${searchQuery}
 

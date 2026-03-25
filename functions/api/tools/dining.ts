@@ -21,6 +21,7 @@ export async function getDining(
     if (activities) {
         objectiveParts.push(`The traveler is interested in: ${activities}. Suggest dining that complements these activities.`);
     }
+    objectiveParts.push('Exclude aggregator sites by appending: -viator -tripadvisor -alltrails -getyourguide -expedia. Prioritize local blogs, official websites, and authentic local sources.');
     if (dealmaker) {
         objectiveParts.push(`Their priority is: ${dealmaker}.`);
     }
