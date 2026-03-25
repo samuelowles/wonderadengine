@@ -3,6 +3,36 @@ import { ArrowLeft, Compass } from '../ui/Icons';
 import { IconButton } from '../ui/Button';
 
 /* ════════════════════════════════════════════
+   Wondura Dynamic Background
+   The shared premium blob gradient and noise
+   ════════════════════════════════════════════ */
+
+export function WonduraBackground() {
+    return (
+        <div className="absolute inset-0 z-0 overflow-hidden bg-[#050A07]">
+            {/* Deep Green Base Wash - Wild stretched shape */}
+            <div className="absolute -top-[20%] -left-[30%] w-[150vw] h-[50vh] bg-[#0A3D22] rounded-[20%_80%_10%_90%] mix-blend-screen filter blur-[120px] opacity-80 rotate-[15deg] skew-y-12 scale-y-125" />
+
+            {/* Vibrant Green - Sharp asymmetric arc */}
+            <div className="absolute -top-[10%] -right-[20%] w-[70vw] h-[100vh] bg-[#3B9C49] rounded-[100%_0%_90%_10%] mix-blend-screen filter blur-[110px] opacity-90 -rotate-[30deg] -skew-x-[20deg]" />
+            
+            {/* Bright Teal - Huge slanted wave */}
+            <div className="absolute -bottom-[20%] -left-[40%] w-[160vw] h-[80vh] bg-[#1A7B9C] rounded-[30%_70%_100%_0%] mix-blend-screen filter blur-[140px] opacity-90 -rotate-[15deg] skew-x-[10deg] scale-125" />
+
+            {/* Subtle Tree Brown - Flattened organic swipe */}
+            <div className="absolute top-[50%] -right-[30%] w-[120vw] h-[40vh] bg-[#755D44] rounded-[0%_100%_10%_90%] mix-blend-screen filter blur-[120px] opacity-80 rotate-[45deg] scale-y-150" />
+            
+            {/* Massive Noise Stack */}
+            <div className="absolute inset-0 z-0 opacity-100 mix-blend-color-dodge contrast-[1.5]" style={{ backgroundImage: 'url("/img/noise.png")', backgroundSize: '70px 70px' }} />
+            <div className="absolute inset-0 z-0 opacity-100 mix-blend-overlay" style={{ backgroundImage: 'url("/img/noise.png")', backgroundSize: '100px 100px' }} />
+            
+            {/* Dark gradient overlay to ensure text legibility at the top/bottom if needed */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+        </div>
+    );
+}
+
+/* ════════════════════════════════════════════
    Minimal Header — glass, brand lockup only
    No bottom nav (removed per feedback)
    ════════════════════════════════════════════ */
@@ -58,12 +88,8 @@ interface ImmersiveLayoutProps {
 export function ImmersiveLayout({ imageSrc, children, onBack }: ImmersiveLayoutProps) {
     return (
         <div className="min-h-screen relative bg-black">
-            <img
-                src={imageSrc}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 gradient-hero-dark" />
+            <WonduraBackground />
+
 
             {onBack && (
                 <nav className="fixed top-0 left-0 right-0 z-50 flex items-center h-[56px] px-[16px]">
@@ -125,14 +151,10 @@ interface HeroBgLayoutProps {
 export function HeroBgLayout({ imageSrc, children, onBack }: HeroBgLayoutProps) {
     return (
         <div className="min-h-screen relative">
-            {/* Fixed background image */}
             <div className="fixed inset-0 z-0">
-                <img
-                    src={imageSrc}
-                    alt=""
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 gradient-hero-dark" />
+                <WonduraBackground />
+            </div>
+
             </div>
 
             {/* Navigation */}

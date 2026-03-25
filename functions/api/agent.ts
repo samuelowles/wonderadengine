@@ -173,7 +173,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 // ── Trace research + enrichment results ──
                 const researchRunId = await tracer.createRun('google-search-research', 'llm', {
                     location, activities,
-                }, parentRunId, { invocation_params: { model: 'gemini-2.0-flash' } });
+                }, parentRunId, { invocation_params: { model: 'gemini-2.5-flash' } });
                 await tracer.endRun(researchRunId, {
                     success: researchResult.success,
                     generations: [{ text: researchResult.research_text }],

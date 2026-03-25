@@ -105,7 +105,7 @@ export async function callGeminiWithSearch(
     prompt: string,
     config?: { temperature?: number; maxOutputTokens?: number }
 ): Promise<GeminiResponse> {
-    const model = 'gemini-2.0-flash';
+    const model = 'gemini-2.5-flash';
     const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
     const controller = new AbortController();
