@@ -49,11 +49,12 @@ function App() {
                 {/* Full screen dark overlay (NO BACKDROP BLUR) during the ENTIRE loading phase */}
                 <div className={`fixed inset-0 z-30 pointer-events-none bg-black/60 transition-all duration-1000 ease-in-out ${isScreenLoading ? 'opacity-100' : 'opacity-0'}`} />
 
-                <div className="relative z-40 w-full flex flex-col min-h-screen pt-[16px]">
+                {/* Monolithic Animated Layout Wrapper: Moves entire structural cluster 27vh downwards during load, perfectly sliding up to 0 on results */}
+                <div 
+                    className="relative z-40 w-full flex flex-col min-h-screen pt-[16px] transition-transform duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                    style={{ transform: isScreenLoading ? 'translateY(27vh)' : 'translateY(0)' }}
+                >
                     
-                    {/* Dynamic Top Spacer: Holds title at 30vh during load, smoothly collapses to 0 when cards render to PUSH title up */}
-                    <div className={`w-full shrink-0 transition-all duration-1000 ease-in-out ${isScreenLoading ? 'h-[25vh]' : 'h-[0px] mb-[16px]'}`} />
-
                     {/* 1. Semantic Title Block - explicitly transitions out of blur when Gemini resolves, with a 500ms delay to ensure the string snaps underneath it first */}
                     <div className={`mb-[24px] w-full transition-all duration-1000 ${isTitleLoading ? 'blur-xl opacity-30 scale-[0.98]' : 'blur-0 opacity-100 scale-100 delay-500'}`}>
                         <h1 className="font-display font-bold text-[64px] leading-none text-white tracking-[-0.03em] mb-[12px]">
@@ -68,11 +69,11 @@ function App() {
                     {/* 2. Content below Title Block */}
                     <div className="w-full transition-all duration-1000">
                         {isScreenLoading ? (
-                            <div className="mt-[24px] flex flex-col items-center opacity-100 transition-opacity duration-300">
+                            <div className="mt-[15vh] flex flex-col items-center opacity-100 transition-opacity duration-300">
                                 <LoadingScreen inline />
                             </div>
                         ) : (
-                            <div className="w-full opacity-100 transition-opacity duration-1000 delay-150">
+                            <div className="w-full opacity-100 animate-slide-up delay-150">
                                 {routingResult && <ResultsFeed routingResult={routingResult} />}
                             </div>
                         )}
