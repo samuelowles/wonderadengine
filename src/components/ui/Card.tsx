@@ -59,46 +59,46 @@ export function ExperienceCard({
             className="opacity-0 animate-slide-up"
             style={{ animationDelay: `${animationDelay}ms` }}
         >
-            <Card className="rounded-[32px] p-[28px] my-[16px]">
+            <Card className="!rounded-[40px] !p-[32px] my-[24px]">
                     {/* Title + Premium Badge */}
                     <div className="flex items-start justify-between gap-[16px] mb-[20px]">
-                        <h3 className="font-display font-bold text-[22px] leading-[1.25] tracking-tight text-[#1A1A1A] pr-4">
+                        <h3 className="font-display font-bold text-[28px] leading-[1.1] tracking-[-0.02em] text-[#111111] pr-4">
                             {title}
                         </h3>
                         {isPremium && (
-                            <div className="flex-shrink-0 w-[68px] h-[68px] rounded-full bg-gradient-to-br from-[#B86AEB] to-[#F07A76] flex items-center justify-center text-white font-medium text-[13px] leading-[1.15] text-center shadow-sm">
+                            <div className="flex-shrink-0 w-[80px] h-[80px] rounded-full bg-gradient-to-br from-[#c850c0] via-[#ff5e62] to-[#ff9966] flex items-center justify-center text-white font-bold text-[14px] leading-[1.2] text-center shadow-md">
                                 Wondura<br/>Pick
                             </div>
                         )}
                     </div>
 
                     {/* Hook — italic opener */}
-                    <p className="font-body text-[15px] italic text-[#6A6A6A] leading-[1.6] mb-[20px]">
+                    <p className="font-body text-[16px] italic text-[#666666] leading-[1.6] mb-[20px]">
                         {hook}
                     </p>
 
                     {/* Context */}
-                    <p className="font-body text-[15px] text-[#4F4F4F] mb-[24px] leading-[1.6]">
+                    <p className="font-body text-[16px] text-[#444444] mb-[24px] leading-[1.6]">
                         {context}
                     </p>
 
-                    <div className="h-px bg-[#EEEEEE] w-full mb-[24px]" />
+                    <div className="h-px bg-[#EAEAEA] w-full mb-[24px]" />
 
                     {/* Practical details */}
                     <div className="mb-[24px]">
-                        <span className="font-body text-[10px] tracking-widest text-[#A0A0A0] uppercase block mb-[8px] font-bold">
+                        <span className="font-body text-[11px] tracking-[0.1em] text-[#999999] uppercase block mb-[10px] font-bold">
                             PRACTICAL DETAILS
                         </span>
-                        <p className="font-body text-[14px] text-[#5A5A5A] leading-[1.65]">
+                        <p className="font-body text-[15px] text-[#555555] leading-[1.6]">
                             {practical}
                         </p>
                     </div>
 
                     {/* Local insight */}
                     {insight && (
-                        <div className="border-l-[3px] border-[#E8E8E8] pl-[16px] mb-[24px]">
-                            <p className="font-body text-[14px] text-[#5A5A5A] leading-[1.65]">
-                                <span className="font-bold text-[#333333]">Local tip: </span>
+                        <div className="border-l-[2px] border-[#D0D0D0] pl-[20px] mb-[24px]">
+                            <p className="font-body text-[15px] text-[#444444] leading-[1.6]">
+                                <span className="font-bold text-[#111111]">Local tip: </span>
                                 {insight}
                             </p>
                         </div>
@@ -107,8 +107,8 @@ export function ExperienceCard({
                     {/* Consider */}
                     {consider && (
                         <div>
-                            <p className="font-body text-[14px] text-[#888888] leading-[1.65]">
-                                <span className="font-medium text-[#777777]">Consider: </span>
+                            <p className="font-body text-[15px] text-[#888888] leading-[1.6]">
+                                <span className="font-medium text-[#666666]">Consider: </span>
                                 {consider}
                             </p>
                         </div>

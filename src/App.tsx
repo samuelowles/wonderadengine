@@ -48,14 +48,14 @@ function App() {
             <HeroBgLayout onBack={reset}>
                 {/* Semantic Top Header */}
                 <div className="mb-[32px]">
-                    <h1 className="font-display font-semibold text-[22px] text-white/90 mb-[4px] tracking-tight lowercase">
+                    <h1 className="font-display font-bold text-[28px] text-white tracking-[-0.03em] mb-[4px] lowercase">
                         {destination}
                     </h1>
-                    <div className="flex items-center gap-[8px] font-body text-[14px] text-white/50">
+                    <div className="flex items-center gap-[8px] font-body text-[15px] font-medium text-white/50">
                         <span className="capitalize">{timeframe}</span>
                         {dealmaker && (
                             <>
-                                <span>•</span>
+                                <span className="text-white/30">•</span>
                                 <span className="capitalize">{dealmaker}</span>
                             </>
                         )}

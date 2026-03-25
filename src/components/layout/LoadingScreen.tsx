@@ -7,20 +7,24 @@ interface LoadingScreenProps {
 }
 
 const loadingPhrases = [
+    "Analyzing preferences...",
+    "Scanning databases...",
     "Consulting local guides...",
     "Curating hidden gems...",
-    "Synthesizing your itinerary...",
-    "Gathering insider knowledge...",
+    "Correlating weather data...",
+    "Resolving logistics...",
+    "Synthesizing itinerary...",
+    "Finalizing details..."
 ];
 
 export function LoadingScreen({ status, inline = false }: LoadingScreenProps) {
     const [phraseIndex, setPhraseIndex] = useState(0);
 
-    // Rotate phrases every 1.5 seconds
+    // Rotate phrases extremely fast (Claude Code style)
     useEffect(() => {
         const interval = setInterval(() => {
             setPhraseIndex((prev) => (prev + 1) % loadingPhrases.length);
-        }, 1500);
+        }, 800);
         return () => clearInterval(interval);
     }, []);
 
@@ -29,14 +33,14 @@ export function LoadingScreen({ status, inline = false }: LoadingScreenProps) {
             {/* Rotating Microcopy or Status */}
             <div className="h-[40px] relative w-full overflow-hidden">
                 {status ? (
-                    <h2 className="absolute inset-0 w-full font-display text-h3 text-white drop-shadow-md transition-all duration-500 opacity-100 transform translate-y-0">
+                    <h2 className="absolute inset-0 w-full font-display font-bold text-[28px] text-white drop-shadow-md transition-all duration-300 opacity-100 transform translate-y-0">
                         {status}
                     </h2>
                 ) : (
                     loadingPhrases.map((phrase, idx) => (
                         <h2 
                             key={idx}
-                            className={`absolute inset-0 w-full font-display text-h3 text-white drop-shadow-md transition-all duration-500 ${
+                            className={`absolute inset-0 w-full font-display font-bold text-[28px] text-white drop-shadow-md transition-all duration-300 ${
                                 idx === phraseIndex 
                                     ? 'opacity-100 transform translate-y-0' 
                                     : 'opacity-0 transform translate-y-4'
