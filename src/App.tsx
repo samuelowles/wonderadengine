@@ -5,7 +5,6 @@ import { MultiStepForm } from './components/features/MultiStepForm'
 import { ResultsFeed } from './components/features/ResultsFeed'
 import { OptionsList } from './components/features/OptionCard'
 import { useWondura } from './hooks/useWondura'
-import { HeroTitle, BodySmall } from './components/ui/Typography'
 
 function App() {
     const {
