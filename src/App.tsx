@@ -54,8 +54,8 @@ function App() {
                     {/* Dynamic Top Spacer: Holds title at 30vh during load, smoothly collapses to 0 when cards render to PUSH title up */}
                     <div className={`w-full shrink-0 transition-all duration-1000 ease-in-out ${isScreenLoading ? 'h-[25vh]' : 'h-[0px] mb-[16px]'}`} />
 
-                    {/* 1. Semantic Title Block - explicitly transitions out of blur when Gemini resolves */}
-                    <div className={`mb-[24px] w-full transition-all duration-1000 ${isTitleLoading ? 'blur-md opacity-40 scale-[0.98]' : 'blur-0 opacity-100 scale-100'}`}>
+                    {/* 1. Semantic Title Block - explicitly transitions out of blur when Gemini resolves, with a 500ms delay to ensure the string snaps underneath it first */}
+                    <div className={`mb-[24px] w-full transition-all duration-1000 ${isTitleLoading ? 'blur-xl opacity-30 scale-[0.98]' : 'blur-0 opacity-100 scale-100 delay-500'}`}>
                         <h1 className="font-display font-bold text-[64px] leading-none text-white tracking-[-0.03em] mb-[12px]">
                             {destination}
                         </h1>
