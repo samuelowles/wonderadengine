@@ -4,6 +4,7 @@ import { callGemini, extractJson } from './lib/gemini';
 import { researchVenues } from './lib/research';
 import { RoutingResultSchema } from '../../src/shared/schema';
 import { ensureNZ } from './lib/location';
+import { LangSmithTracer } from './lib/tracing';
 
 // Tools (enrichment — weather, events, pricing)
 import { getWeather } from './tools/weather';
@@ -90,13 +91,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             const keepAlive = setInterval(() => send('ping', { timestamp: Date.now() }), 4000);
 
             try {
-                // Setup process.env for LangSmith tracing on Cloudflare
-                if (typeof (globalThis as any).process === 'undefined') {
-                    (globalThis as any).process = { env: {} };
-                }
-                (globalThis as any).process.env.LANGSMITH_API_KEY = context.env.LANGSMITH_API_KEY || '';
-                (globalThis as any).process.env.LANGSMITH_TRACING = 'true';
-                (globalThis as any).process.env.LANGSMITH_PROJECT = 'wondura-engine';
+                const tracer = new LangSmithTracer(context.env.LANGSMITH_API_KEY || '');
 
                 // Parse request
                 const body = await context.request.json();
@@ -117,6 +112,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
                 const apiKey = context.env.GOOGLE_AI_KEY;
                 const parallelKey = context.env.PARALLEL_API_KEY;
+
+                // ── Start parent trace ──
+                const parentRunId = await tracer.createRun('wondura-agent', 'chain', {
+                    destination: location, dates, activities, dealmaker,
+                });
 
                 // ── Phase 1 & 2: Research + Enrichment (CONCURRENT) ──
                 send('status', { phase: 'researching' });
@@ -170,12 +170,27 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 // Wait for both research and enrichment
                 const [researchResult] = await Promise.all([researchPromise, enrichPromise]);
 
+                // ── Trace research + enrichment results ──
+                const researchRunId = await tracer.createRun('google-search-research', 'tool', {
+                    location, activities,
+                }, parentRunId);
+                await tracer.endRun(researchRunId, {
+                    success: researchResult.success,
+                    research_text: researchResult.research_text,
+                });
+
+                const enrichRunId = await tracer.createRun('parallel-enrichment', 'tool', {
+                    location, dates, activities, dealmaker,
+                }, parentRunId);
+                await tracer.endRun(enrichRunId, toolData);
+
                 console.log(`[AGENT] Research ${researchResult.success ? 'succeeded' : 'failed'} (${researchResult.research_text.length} chars)`);
                 console.log(`[AGENT] Research preview: ${researchResult.research_text.slice(0, 300)}`);
 
                 // If research failed entirely, bail out with a clear error
                 if (!researchResult.success || researchResult.research_text.length < 50) {
                     console.error('[AGENT] Research failed or too short — cannot generate grounded cards');
+                    await tracer.endRun(parentRunId, { error: 'Research failed' }, 'Research failed or too short');
                     send('error', { error: 'Could not find venues right now. Please try again in a moment.' });
                     send('done', {});
                     clearInterval(keepAlive);
@@ -208,6 +223,12 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                 console.log(`[AGENT] Research text length: ${researchResult.research_text.length}`);
 
                 // Call Gemini — force JSON output
+                const geminiRunId = await tracer.createRun('callGemini-cards', 'llm', {
+                    system_prompt: WONDURA_PROMPT,
+                    user_context: userContext,
+                    model: 'gemini-3-flash-preview',
+                }, parentRunId);
+
                 let response: string;
                 try {
                     response = await callGemini(
@@ -216,10 +237,13 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                         userContext,
                         { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
                     );
+                    await tracer.endRun(geminiRunId, { response_length: response.length, response_preview: response.slice(0, 500) });
                     console.log(`[AGENT] Gemini response length: ${response.length}`);
                     console.log(`[AGENT] Gemini response preview: ${response.slice(0, 300)}`);
                 } catch (geminiError) {
+                    await tracer.endRun(geminiRunId, {}, String(geminiError));
                     console.error('[AGENT] Gemini API call failed:', geminiError);
+                    await tracer.endRun(parentRunId, { error: 'Gemini failed' }, String(geminiError));
                     send('error', { error: `Gemini API error: ${String(geminiError)}` });
                     send('done', {});
                     clearInterval(keepAlive);
@@ -248,6 +272,7 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                 }
 
                 send('done', {});
+                await tracer.endRun(parentRunId, { cards_sent: true });
                 clearInterval(keepAlive);
                 controller.close();
             } catch (error) {

@@ -1,5 +1,4 @@
 // Gemini API helper for Cloudflare Functions
-import { traceable } from "langsmith/traceable";
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
@@ -12,7 +11,7 @@ interface GeminiConfig {
     responseMimeType?: string;
 }
 
-export const callGemini = traceable(async function callGemini(
+export async function callGemini(
     apiKey: string,
     systemPrompt: string,
     userMessage: string,
@@ -82,14 +81,14 @@ export const callGemini = traceable(async function callGemini(
 
     console.log(`[GEMINI] Extracted ${text.length} chars of text`);
     return text;
-}, { name: "callGemini" });
+}
 
 /**
  * Call Gemini with Google Search grounding enabled.
  * Uses gemini-2.5-flash for grounded venue research.
  * Note: google_search tool requires a model that supports it.
  */
-export const callGeminiWithSearch = traceable(async function callGeminiWithSearch(
+export async function callGeminiWithSearch(
     apiKey: string,
     prompt: string,
     config?: { temperature?: number; maxOutputTokens?: number }
@@ -129,7 +128,7 @@ export const callGeminiWithSearch = traceable(async function callGeminiWithSearc
     }
 
     return text;
-}, { name: "callGeminiWithSearch" });
+}
 
 // Extract JSON from Gemini response (handles markdown code blocks)
 export function extractJson<T>(text: string): T {
