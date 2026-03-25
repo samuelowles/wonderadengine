@@ -7,22 +7,24 @@ interface LoadingScreenProps {
 }
 
 const loadingPhrases = [
-    "Seeing what's on...",
-    "Asking the locals...",
-    "Looking at the forecast...",
-    "Finding those hidden gems...",
-    "Mapping out the best spots...",
-    "Putting it all together..."
+    "Scanning regional topographic markers...",
+    "Consulting local trail databases...",
+    "Analyzing micro-climate forecasts...",
+    "Cross-referencing hidden local viewpoints...",
+    "Evaluating off-the-grid route viability...",
+    "Calculating optimal driving intervals...",
+    "Correlating seasonal wildlife patterns...",
+    "Synthesizing your expedition matrix..."
 ];
 
 export function LoadingScreen({ status, inline = false }: LoadingScreenProps) {
     const [phraseIndex, setPhraseIndex] = useState(0);
 
-    // Rotate phrases slower (Human/DOC Ranger style)
+    // High-frequency Claude-style rotation (800ms)
     useEffect(() => {
         const interval = setInterval(() => {
             setPhraseIndex((prev) => (prev + 1) % loadingPhrases.length);
-        }, 2000);
+        }, 800);
         return () => clearInterval(interval);
     }, []);
 

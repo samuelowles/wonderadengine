@@ -42,17 +42,20 @@ function App() {
         const timeframe = routingResult?.extracted.date || query?.dates || 'Next Weekend';
         const dealmaker = routingResult?.extracted.deal_maker || query?.dealmaker || '';
         const isTitleLoading = !tripTitle && phase === 'loading';
+        const isScreenLoading = phase === 'loading';
 
         return (
             <HeroBgLayout onBack={reset}>
-                {/* Unified content wrapper that blurs EVERYTHING (Title + Loader) during semantic generation */}
-                <div className={`transition-all duration-1000 ease-in-out ${isTitleLoading ? 'blur-md opacity-40 scale-[0.98]' : 'blur-0 opacity-100 scale-100'}`}>
-                    
-                    {/* Constant Spacer pushing the title to the exact vertical center */}
-                    <div className="h-[30vh] w-full shrink-0" />
+                {/* Full screen dark overlay (NO BACKDROP BLUR) during the ENTIRE loading phase */}
+                <div className={`fixed inset-0 z-30 pointer-events-none bg-black/60 transition-all duration-1000 ease-in-out ${isScreenLoading ? 'opacity-100' : 'opacity-0'}`} />
 
-                    {/* 1. Semantic Title Block */}
-                    <div className="mb-[24px] relative z-40 w-full transition-transform duration-700">
+                <div className="relative z-40 w-full flex flex-col min-h-screen pt-[16px]">
+                    
+                    {/* Dynamic Top Spacer: Holds title at 30vh during load, smoothly collapses to 0 when cards render to PUSH title up */}
+                    <div className={`w-full shrink-0 transition-all duration-1000 ease-in-out ${isScreenLoading ? 'h-[25vh]' : 'h-[0px] mb-[16px]'}`} />
+
+                    {/* 1. Semantic Title Block - explicitly transitions out of blur when Gemini resolves */}
+                    <div className={`mb-[24px] w-full transition-all duration-1000 ${isTitleLoading ? 'blur-md opacity-40 scale-[0.98]' : 'blur-0 opacity-100 scale-100'}`}>
                         <h1 className="font-display font-bold text-[64px] leading-none text-white tracking-[-0.03em] mb-[12px]">
                             {destination}
                         </h1>
@@ -63,13 +66,15 @@ function App() {
                     </div>
 
                     {/* 2. Content below Title Block */}
-                    <div className="relative z-40 w-full">
-                        {phase === 'loading' ? (
-                            <div className="h-[25vh] flex flex-col items-center justify-center">
+                    <div className="w-full transition-all duration-1000">
+                        {isScreenLoading ? (
+                            <div className="mt-[24px] flex flex-col items-center opacity-100 transition-opacity duration-300">
                                 <LoadingScreen inline />
                             </div>
                         ) : (
-                            routingResult && <ResultsFeed routingResult={routingResult} />
+                            <div className="w-full opacity-100 transition-opacity duration-1000 delay-150">
+                                {routingResult && <ResultsFeed routingResult={routingResult} />}
+                            </div>
                         )}
                     </div>
                 </div>
