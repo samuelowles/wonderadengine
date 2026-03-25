@@ -44,6 +44,25 @@ interface ExperienceCardProps {
     isPremium?: boolean;
 }
 
+const CheckIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" fill="#E76C82" />
+        <path d="M8 12.5L10.5 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+const ParagraphBullet = ({ text, boldPrefix }: { text: string, boldPrefix?: string }) => (
+    <div className="flex gap-[16px] items-start">
+        <div className="mt-[2px] flex-shrink-0">
+            <CheckIcon />
+        </div>
+        <p className="font-body text-[15px] text-[#111111] leading-[1.5]">
+            {boldPrefix && <span className="font-bold text-[#111111]">{boldPrefix} </span>}
+            <span className="text-[#333333] font-medium">{text}</span>
+        </p>
+    </div>
+);
+
 export function ExperienceCard({
     title,
     hook,
@@ -59,60 +78,45 @@ export function ExperienceCard({
             className="opacity-0 animate-slide-up"
             style={{ animationDelay: `${animationDelay}ms` }}
         >
-            <Card className="!rounded-[40px] !p-[32px] my-[24px]">
-                    {/* Title + Premium Badge */}
-                    <div className="flex items-start justify-between gap-[16px] mb-[20px]">
-                        <h3 className="font-display font-bold text-[28px] leading-[1.1] tracking-[-0.02em] text-[#111111] pr-4">
-                            {title}
-                        </h3>
-                        {isPremium && (
-                            <div className="flex-shrink-0 w-[80px] h-[80px] rounded-full bg-gradient-to-br from-[#c850c0] via-[#ff5e62] to-[#ff9966] flex items-center justify-center text-white font-bold text-[14px] leading-[1.2] text-center shadow-md">
-                                Wondura<br/>Pick
-                            </div>
-                        )}
-                    </div>
+            <Card className="!rounded-[32px] !p-[32px] my-[24px] !bg-[#F9F6F0]">
+                {/* 1. Header Array: Title + Inline Badge */}
+                <div className="mb-[24px]">
+                    <h3 className="font-display font-medium text-[30px] leading-[1.15] tracking-[-0.02em] text-[#111111]">
+                        {title}
+                    </h3>
+                    {isPremium && (
+                        <div className="inline-flex mt-[12px] px-[12px] py-[4px] rounded-full bg-gradient-to-r from-[#B450A4] to-[#E76C82] text-white text-[12px] font-bold uppercase tracking-wide">
+                            Wondura Pick
+                        </div>
+                    )}
+                </div>
 
-                    {/* Hook — italic opener */}
-                    <p className="font-body text-[16px] italic text-[#666666] leading-[1.6] mb-[20px]">
-                        {hook}
-                    </p>
-
-                    {/* Context */}
-                    <p className="font-body text-[16px] text-[#444444] mb-[24px] leading-[1.6]">
-                        {context}
-                    </p>
-
-                    <div className="h-px bg-[#EAEAEA] w-full mb-[24px]" />
-
-                    {/* Practical details */}
-                    <div className="mb-[24px]">
-                        <span className="font-body text-[11px] tracking-[0.1em] text-[#999999] uppercase block mb-[10px] font-bold">
-                            PRACTICAL DETAILS
-                        </span>
-                        <p className="font-body text-[15px] text-[#555555] leading-[1.6]">
-                            {practical}
+                {/* 2. Body Payload (Hook + Context) */}
+                <div className="mb-[24px]">
+                    {hook && (
+                        <p className="font-display text-[18px] text-[#222222] leading-[1.4] mb-[8px]">
+                            {hook}
                         </p>
-                    </div>
+                    )}
+                    {context && (
+                        <p className="font-body text-[15px] text-[#444444] font-medium leading-[1.6]">
+                            {context}
+                        </p>
+                    )}
+                </div>
 
-                    {/* Local insight */}
+                {/* 3. Regimented Suno Bullet List Architecture for Metadata */}
+                <div className="flex flex-col gap-[16px]">
+                    {practical && (
+                        <ParagraphBullet text={practical} />
+                    )}
                     {insight && (
-                        <div className="border-l-[2px] border-[#D0D0D0] pl-[20px] mb-[24px]">
-                            <p className="font-body text-[15px] text-[#444444] leading-[1.6]">
-                                <span className="font-bold text-[#111111]">Local tip: </span>
-                                {insight}
-                            </p>
-                        </div>
+                        <ParagraphBullet boldPrefix="Local tip:" text={insight} />
                     )}
-
-                    {/* Consider */}
                     {consider && (
-                        <div>
-                            <p className="font-body text-[15px] text-[#888888] leading-[1.6]">
-                                <span className="font-medium text-[#666666]">Consider: </span>
-                                {consider}
-                            </p>
-                        </div>
+                        <ParagraphBullet boldPrefix="Consider:" text={consider} />
                     )}
+                </div>
             </Card>
         </div>
     );
