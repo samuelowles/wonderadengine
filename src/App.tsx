@@ -43,13 +43,24 @@ function App() {
     /* ── Results ── Cards on single hero background */
     if (phase === 'results' && routingResult) {
         const destination = routingResult.extracted.destination || 'New Zealand';
+        const timeframe = routingResult.extracted.date || 'Next Weekend';
+        const dealmaker = routingResult.extracted.deal_maker || 'Unforgettable';
         return (
-            <HeroBgLayout imageSrc="/img/DTS_Chill Dudes_by_Daniel Faro╠Ç_015.jpg" onBack={reset}>
-                <div className="mb-[24px]">
-                    <HeroTitle className="mb-[4px]">{destination}</HeroTitle>
-                    <BodySmall className="text-white/50">
-                        {routingResult.extracted.date || 'Your curated experiences'}
-                    </BodySmall>
+            <HeroBgLayout onBack={reset}>
+                {/* Semantic Top Header */}
+                <div className="mb-[32px]">
+                    <h1 className="font-display font-semibold text-[22px] text-white/90 mb-[4px] tracking-tight lowercase">
+                        {destination}
+                    </h1>
+                    <div className="flex items-center gap-[8px] font-body text-[14px] text-white/50">
+                        <span className="capitalize">{timeframe}</span>
+                        {dealmaker && (
+                            <>
+                                <span>•</span>
+                                <span className="capitalize">{dealmaker}</span>
+                            </>
+                        )}
+                    </div>
                 </div>
                 <ResultsFeed routingResult={routingResult} />
             </HeroBgLayout>

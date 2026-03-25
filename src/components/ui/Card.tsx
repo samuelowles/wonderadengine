@@ -1,5 +1,4 @@
 import React from 'react';
-import { Badge } from './Badge';
 
 /* ════════════════════════════════════════════
    Base Card
@@ -60,52 +59,60 @@ export function ExperienceCard({
             className="opacity-0 animate-slide-up"
             style={{ animationDelay: `${animationDelay}ms` }}
         >
-            <Card className={isPremium ? 'ring-2 ring-teal-100 shadow-float' : ''}>
+            <Card className="rounded-[32px] p-[28px] my-[16px]">
                     {/* Title + Premium Badge */}
-                    <div className="flex items-start justify-between gap-[12px] mb-[8px]">
-                        <h3 className="font-display text-h3 text-text-primary">
+                    <div className="flex items-start justify-between gap-[16px] mb-[20px]">
+                        <h3 className="font-display font-bold text-[22px] leading-[1.25] tracking-tight text-[#1A1A1A] pr-4">
                             {title}
                         </h3>
                         {isPremium && (
-                            <Badge variant="premium">Wondura Pick</Badge>
+                            <div className="flex-shrink-0 w-[68px] h-[68px] rounded-full bg-gradient-to-br from-[#B86AEB] to-[#F07A76] flex items-center justify-center text-white font-medium text-[13px] leading-[1.15] text-center shadow-sm">
+                                Wondura<br/>Pick
+                            </div>
                         )}
                     </div>
 
                     {/* Hook — italic opener */}
-                    <p className="font-body text-body text-text-secondary italic mb-[12px] leading-[1.6]">
+                    <p className="font-body text-[15px] italic text-[#6A6A6A] leading-[1.6] mb-[20px]">
                         {hook}
                     </p>
 
-                    {/* Context — why locals value this */}
-                    <p className="font-body text-body text-text-secondary mb-[16px] leading-[1.6]">
+                    {/* Context */}
+                    <p className="font-body text-[15px] text-[#4F4F4F] mb-[24px] leading-[1.6]">
                         {context}
                     </p>
 
+                    <div className="h-px bg-[#EEEEEE] w-full mb-[24px]" />
+
                     {/* Practical details */}
-                    <div className="pt-[16px] border-t border-border-subtle">
-                        <span className="font-body text-micro text-text-muted block mb-[6px]">
+                    <div className="mb-[24px]">
+                        <span className="font-body text-[10px] tracking-widest text-[#A0A0A0] uppercase block mb-[8px] font-bold">
                             PRACTICAL DETAILS
                         </span>
-                        <p className="font-body text-body-sm text-text-secondary leading-relaxed">
+                        <p className="font-body text-[14px] text-[#5A5A5A] leading-[1.65]">
                             {practical}
                         </p>
                     </div>
 
                     {/* Local insight */}
-                    <div className="mt-[12px] pl-[12px] border-l-2 border-accent/30">
-                        <p className="font-body text-body-sm text-text-secondary leading-relaxed">
-                            <span className="font-medium text-text-primary">Local tip: </span>
-                            {insight}
-                        </p>
-                    </div>
+                    {insight && (
+                        <div className="border-l-[3px] border-[#E8E8E8] pl-[16px] mb-[24px]">
+                            <p className="font-body text-[14px] text-[#5A5A5A] leading-[1.65]">
+                                <span className="font-bold text-[#333333]">Local tip: </span>
+                                {insight}
+                            </p>
+                        </div>
+                    )}
 
-                    {/* Consider — honest caveat */}
-                    <div className="mt-[12px]">
-                        <p className="font-body text-body-xs text-text-muted leading-relaxed">
-                            <span className="font-medium">Consider: </span>
-                            {consider}
-                        </p>
-                    </div>
+                    {/* Consider */}
+                    {consider && (
+                        <div>
+                            <p className="font-body text-[14px] text-[#888888] leading-[1.65]">
+                                <span className="font-medium text-[#777777]">Consider: </span>
+                                {consider}
+                            </p>
+                        </div>
+                    )}
             </Card>
         </div>
     );

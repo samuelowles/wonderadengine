@@ -16,19 +16,16 @@ const loadingPhrases = [
 export function LoadingScreen({ status, inline = false }: LoadingScreenProps) {
     const [phraseIndex, setPhraseIndex] = useState(0);
 
-    // Rotate phrases every 2.5 seconds
+    // Rotate phrases every 1.5 seconds
     useEffect(() => {
         const interval = setInterval(() => {
             setPhraseIndex((prev) => (prev + 1) % loadingPhrases.length);
-        }, 2500);
+        }, 1500);
         return () => clearInterval(interval);
     }, []);
 
     const content = (
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-[70vh] text-center px-6">
-            {/* Sleek Thick Ring Loader */}
-            <div className="w-[64px] h-[64px] border-[6px] border-white/20 border-t-white rounded-full animate-spin mb-[40px]" />
-
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-[50vh] text-center px-6">
             {/* Rotating Microcopy or Status */}
             <div className="h-[40px] relative w-full overflow-hidden">
                 {status ? (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ExperienceCard } from '../ui/Card';
 import { LoadingScreen } from '../layout/LoadingScreen';
-import { H2, Body, BodySmall, BodyXS, SectionHeader } from '../ui/Typography';
+import { H2, Body, BodySmall, BodyXS } from '../ui/Typography';
 import type { ExperienceCard as ExperienceCardType } from '../../shared/schema';
 import type { RoutingResult } from '../../shared/schema';
 
@@ -102,7 +102,9 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
 
             {/* Section header */}
             {cards.length > 0 && (
-                <SectionHeader className="text-white/50">Your Experiences</SectionHeader>
+                <div className="mb-[24px]">
+                    <h2 className="font-body text-[13px] font-bold tracking-widest text-white/60 uppercase">YOUR EXPERIENCES</h2>
+                </div>
             )}
 
             {/* Experience cards */}
