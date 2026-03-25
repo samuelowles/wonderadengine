@@ -155,8 +155,6 @@ export function HeroBgLayout({ imageSrc, children, onBack }: HeroBgLayoutProps) 
                 <WonduraBackground />
             </div>
 
-            </div>
-
             {/* Navigation */}
             {onBack && (
                 <nav className="fixed top-0 left-0 right-0 z-50 flex items-center h-[56px] px-[16px]">
