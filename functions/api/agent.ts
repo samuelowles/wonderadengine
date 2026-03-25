@@ -171,12 +171,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 const [researchResult] = await Promise.all([researchPromise, enrichPromise]);
 
                 // ── Trace research + enrichment results ──
-                const researchRunId = await tracer.createRun('google-search-research', 'tool', {
+                const researchRunId = await tracer.createRun('google-search-research', 'llm', {
                     location, activities,
-                }, parentRunId);
+                }, parentRunId, { invocation_params: { model: 'gemini-2.0-flash' } });
                 await tracer.endRun(researchRunId, {
                     success: researchResult.success,
-                    research_text: researchResult.research_text,
+                    generations: [{ text: researchResult.research_text }],
+                    llm_output: researchResult.usage ? {
+                        token_usage: {
+                            prompt_tokens: researchResult.usage.prompt,
+                            completion_tokens: researchResult.usage.completion,
+                            total_tokens: researchResult.usage.total
+                        }
+                    } : undefined
                 });
 
                 const enrichRunId = await tracer.createRun('parallel-enrichment', 'tool', {
@@ -229,17 +236,28 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                     model: 'gemini-3-flash-preview',
                 }, parentRunId);
 
-                let response: string;
+                let responseText: string;
                 try {
-                    response = await callGemini(
+                    const res = await callGemini(
                         apiKey,
                         WONDURA_PROMPT,
                         userContext,
                         { model: 'gemini-3-flash-preview', temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json' }
                     );
-                    await tracer.endRun(geminiRunId, { response_length: response.length, response_preview: response.slice(0, 500) });
-                    console.log(`[AGENT] Gemini response length: ${response.length}`);
-                    console.log(`[AGENT] Gemini response preview: ${response.slice(0, 300)}`);
+                    responseText = res.text;
+                    await tracer.endRun(geminiRunId, { 
+                        generations: [{ text: responseText }],
+                        response_preview: responseText.slice(0, 500),
+                        llm_output: res.usage ? {
+                            token_usage: {
+                                prompt_tokens: res.usage.prompt,
+                                completion_tokens: res.usage.completion,
+                                total_tokens: res.usage.total
+                            }
+                        } : undefined
+                    });
+                    console.log(`[AGENT] Gemini response length: ${responseText.length}`);
+                    console.log(`[AGENT] Gemini response preview: ${responseText.slice(0, 300)}`);
                 } catch (geminiError) {
                     await tracer.endRun(geminiRunId, {}, String(geminiError));
                     console.error('[AGENT] Gemini API call failed:', geminiError);
@@ -253,7 +271,7 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
 
                 // Parse and send cards
                 try {
-                    const cards = extractJson(response);
+                    const cards = extractJson(responseText);
                     console.log(`[AGENT] extractJson returned type: ${typeof cards}, isArray: ${Array.isArray(cards)}`);
                     if (Array.isArray(cards)) {
                         for (const card of cards) {
@@ -267,7 +285,7 @@ Pricing: ${JSON.stringify(toolData.price) || 'Unavailable'}
                     }
                 } catch (parseError) {
                     console.error('[AGENT] Failed to parse cards:', parseError);
-                    console.error('[AGENT] Raw response:', response.slice(0, 1000));
+                    console.error('[AGENT] Raw response:', responseText.slice(0, 1000));
                     send('error', { error: 'Failed to parse experience cards from AI response' });
                 }
 

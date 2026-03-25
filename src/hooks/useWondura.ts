@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { UserQuery, RoutingResult, OptionItem } from '../shared/schema';
 
-type Phase = 'form' | 'loading' | 'results' | 'options';
+type Phase = 'splash' | 'form' | 'loading' | 'results' | 'options';
 
 interface WonduraState {
     phase: Phase;
@@ -12,7 +12,7 @@ interface WonduraState {
 
 export function useWondura() {
     const [state, setState] = useState<WonduraState>({
-        phase: 'form',
+        phase: 'splash',
         routingResult: null,
         options: [],
         error: null,
@@ -91,11 +91,15 @@ export function useWondura() {
 
     const reset = useCallback(() => {
         setState({
-            phase: 'form',
+            phase: 'splash',
             routingResult: null,
             options: [],
             error: null,
         });
+    }, []);
+
+    const startForm = useCallback(() => {
+        setState(prev => ({ ...prev, phase: 'form' }));
     }, []);
 
     return {
@@ -103,5 +107,6 @@ export function useWondura() {
         submitQuery,
         selectOption,
         reset,
+        startForm,
     };
 }

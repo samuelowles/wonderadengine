@@ -14,6 +14,7 @@ interface TraceRun {
     start_time: string;
     session_name?: string;
     parent_run_id?: string;
+    extra?: Record<string, unknown>;
 }
 
 interface TraceUpdate {
@@ -39,7 +40,7 @@ export class LangSmithTracer {
         return !!this.apiKey && this.apiKey.length > 10;
     }
 
-    async createRun(name: string, runType: 'llm' | 'chain' | 'tool', inputs: Record<string, unknown>, parentRunId?: string): Promise<string> {
+    async createRun(name: string, runType: 'llm' | 'chain' | 'tool', inputs: Record<string, unknown>, parentRunId?: string, extra?: Record<string, unknown>): Promise<string> {
         const runId = uuid();
         if (!this.enabled) return runId;
 
@@ -51,6 +52,7 @@ export class LangSmithTracer {
             start_time: new Date().toISOString(),
             session_name: this.project,
             ...(parentRunId ? { parent_run_id: parentRunId } : {}),
+            ...(extra ? { extra } : {}),
         };
 
         try {

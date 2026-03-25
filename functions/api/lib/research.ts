@@ -6,6 +6,7 @@ import { callGeminiWithSearch } from './gemini';
 export interface ResearchResult {
     research_text: string;
     success: boolean;
+    usage?: { prompt: number; completion: number; total: number };
 }
 
 /**
@@ -44,15 +45,15 @@ IMPORTANT: Only list venues you actually found in search results. Do NOT guess o
     try {
         console.log(`[RESEARCH] Querying Google Search: "${searchQuery}"`);
 
-        const response = await callGeminiWithSearch(apiKey, prompt, {
+        const res = await callGeminiWithSearch(apiKey, prompt, {
             temperature: 0.1,
             maxOutputTokens: 4096,
         });
 
-        console.log(`[RESEARCH] Got response (${response.length} chars): ${response.slice(0, 200)}...`);
+        console.log(`[RESEARCH] Got response (${res.text.length} chars)`);
 
-        if (response && response.length > 50) {
-            return { research_text: response, success: true };
+        if (res.text && res.text.length > 50) {
+            return { research_text: res.text, success: true, usage: res.usage };
         }
 
         console.warn('[RESEARCH] Response too short, treating as failure');

@@ -11,12 +11,17 @@ interface GeminiConfig {
     responseMimeType?: string;
 }
 
+export interface GeminiResponse {
+    text: string;
+    usage?: { prompt: number; completion: number; total: number };
+}
+
 export async function callGemini(
     apiKey: string,
     systemPrompt: string,
     userMessage: string,
     config: GeminiConfig
-): Promise<string> {
+): Promise<GeminiResponse> {
     const url = `${GEMINI_API_BASE}/${config.model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
@@ -80,7 +85,14 @@ export async function callGemini(
     }
 
     console.log(`[GEMINI] Extracted ${text.length} chars of text`);
-    return text;
+    
+    const usage = data.usageMetadata ? {
+        prompt: data.usageMetadata.promptTokenCount || 0,
+        completion: data.usageMetadata.candidatesTokenCount || 0,
+        total: data.usageMetadata.totalTokenCount || 0
+    } : undefined;
+
+    return { text, usage };
 }
 
 /**
@@ -92,33 +104,44 @@ export async function callGeminiWithSearch(
     apiKey: string,
     prompt: string,
     config?: { temperature?: number; maxOutputTokens?: number }
-): Promise<string> {
-    const model = 'gemini-2.5-flash';
+): Promise<GeminiResponse> {
+    const model = 'gemini-2.0-flash';
     const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{
-                role: 'user',
-                parts: [{ text: prompt }]
-            }],
-            tools: [{ google_search: {} }],
-            generationConfig: {
-                temperature: config?.temperature ?? 0.1,
-                maxOutputTokens: config?.maxOutputTokens ?? 4096,
-            }
-        })
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000); // 25s abort
+
+    let response: Response;
+    try {
+        response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    role: 'user',
+                    parts: [{ text: prompt }]
+                }],
+                tools: [{ googleSearch: {} }],
+                generationConfig: {
+                    temperature: config?.temperature ?? 0.1,
+                    maxOutputTokens: config?.maxOutputTokens ?? 4096,
+                }
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timeout);
+    } catch (e) {
+        clearTimeout(timeout);
+        throw new Error(`Fetch failed or timed out: ${e}`);
+    }
 
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Gemini Search API error: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-    const text = data.candidates?.[0]?.content?.parts
+    const json = await response.json() as any;
+    const text = json.candidates?.[0]?.content?.parts
         ?.filter((p: { text?: string }) => p.text)
         .map((p: { text?: string }) => p.text)
         .join('\n');
@@ -127,7 +150,13 @@ export async function callGeminiWithSearch(
         throw new Error('No text in Gemini Search response');
     }
 
-    return text;
+    const usage = json.usageMetadata ? {
+        prompt: json.usageMetadata.promptTokenCount || 0,
+        completion: json.usageMetadata.candidatesTokenCount || 0,
+        total: json.usageMetadata.totalTokenCount || 0
+    } : undefined;
+
+    return { text, usage };
 }
 
 // Extract JSON from Gemini response (handles markdown code blocks)

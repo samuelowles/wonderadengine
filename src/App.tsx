@@ -1,5 +1,7 @@
-import { ImmersiveLayout, HeroBgLayout } from './components/layout/Layout'
-import { FormFlow } from './components/features/FormFlow'
+import { HeroBgLayout } from './components/layout/Layout'
+import { SplashScreen } from './components/layout/SplashScreen'
+import { LoadingScreen } from './components/layout/LoadingScreen'
+import { MultiStepForm } from './components/features/MultiStepForm'
 import { ResultsFeed } from './components/features/ResultsFeed'
 import { OptionsList } from './components/features/OptionCard'
 import { useWondura } from './hooks/useWondura'
@@ -13,38 +15,29 @@ function App() {
         error,
         submitQuery,
         selectOption,
-        reset
+        reset,
+        startForm
     } = useWondura();
 
-    /* ── Form ── 9:16 card on full background */
+    /* ── Splash ── Welcome Screen */
+    if (phase === 'splash') {
+        return <SplashScreen onStart={startForm} />;
+    }
+
+    /* ── Form ── Multi-step full screen input */
     if (phase === 'form') {
         return (
-            <FormFlow
+            <MultiStepForm
                 onSubmit={submitQuery}
+                onBackToSplash={reset}
                 error={error}
             />
         );
     }
 
-    /* ── Loading ── Immersive with spinner */
-    /* ── Loading ── Immersive with spinner */
+    /* ── Loading ── Branded Microcopy */
     if (phase === 'loading') {
-        return (
-            <ImmersiveLayout imageSrc="/img/hero-loading.jpg">
-                <div className="flex flex-col items-center justify-center min-h-[70vh] text-center">
-                    {/* Sleek Thick Ring Loader */}
-                    <div className="w-[64px] h-[64px] border-[6px] border-white/20 border-t-white rounded-full animate-spin mb-[32px]" />
-
-                    <h1 className="font-display text-h1 text-white mb-[16px] drop-shadow-md">
-                        Finding Your Experience
-                    </h1>
-
-                    <span className="font-body text-micro text-white/70 tracking-widest">
-                        SEARCHING LOCAL KNOWLEDGE
-                    </span>
-                </div>
-            </ImmersiveLayout>
-        );
+        return <LoadingScreen />;
     }
 
     /* ── Results ── Cards on single hero background */

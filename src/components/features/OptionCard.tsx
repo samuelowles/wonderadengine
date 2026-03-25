@@ -30,12 +30,11 @@ export function OptionCard({ option, onSelect, index, isWonduraRecommendation = 
             style={{ animationDelay: `${index * 100}ms` }}
         >
             <Card className={isWonduraRecommendation ? 'ring-2 ring-teal-100 shadow-float' : ''}>
-                <div className="p-[24px]">
                     {/* Title + badge row */}
                     <div className="flex items-start justify-between gap-[12px] mb-[4px]">
                         <H3 as="h3">{displayName}</H3>
                         {isWonduraRecommendation && (
-                            <Badge variant="wondura">Wondura Pick</Badge>
+                            <Badge variant="premium">Wondura Pick</Badge>
                         )}
                     </div>
 
@@ -60,7 +59,6 @@ export function OptionCard({ option, onSelect, index, isWonduraRecommendation = 
                             <ChevronRight size={16} className="ml-[8px]" />
                         </Button>
                     </div>
-                </div>
             </Card>
         </div>
     );

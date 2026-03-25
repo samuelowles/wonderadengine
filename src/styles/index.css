@@ -53,23 +53,16 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #000000;
-    /* Outer background */
+    background-color: #F7F7F5;
   }
 
   body {
     font-family: 'Polymath Text', system-ui, sans-serif;
     color: #1A1A1A;
     background: #F7F7F5;
-    /* App background */
-    /* Mobile Constraint */
-    max-width: 430px;
-    margin: 0 auto;
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-    /* Desktop separation */
   }
 }
 

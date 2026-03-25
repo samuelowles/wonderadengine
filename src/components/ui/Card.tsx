@@ -57,7 +57,6 @@ export function ExperienceCard({
             style={{ animationDelay: `${animationDelay}ms` }}
         >
             <Card>
-                <div className="p-[24px]">
                     {/* Title */}
                     <h3 className="font-display text-h3 text-text-primary mb-[8px]">
                         {title}
@@ -98,7 +97,6 @@ export function ExperienceCard({
                             {consider}
                         </p>
                     </div>
-                </div>
             </Card>
         </div>
     );

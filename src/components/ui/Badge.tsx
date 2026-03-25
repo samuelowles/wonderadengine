@@ -2,7 +2,7 @@ import React from 'react';
 
 interface BadgeProps {
     children: React.ReactNode;
-    variant?: 'success' | 'savings' | 'info' | 'neutral' | 'wondura';
+    variant?: 'success' | 'savings' | 'info' | 'neutral' | 'wondura' | 'premium';
     className?: string;
 }
 
@@ -12,6 +12,7 @@ const variantStyles: Record<string, string> = {
     info: 'bg-blue-50 text-blue-700',
     neutral: 'bg-surface-subtle text-text-secondary', // Gray
     wondura: 'bg-brand-bg text-brand-accent font-bold tracking-wide uppercase text-[11px]', // Special Wondura Badge
+    premium: 'bg-gradient-to-r from-[#A555EC] to-[#F28269] text-white', // Suno style gradient
 };
 
 export function Badge({ children, variant = 'success', className = '' }: BadgeProps) {
