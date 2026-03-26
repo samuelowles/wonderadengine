@@ -100,12 +100,7 @@ export function ResultsFeed({ routingResult, onBack }: ResultsFeedProps) {
                 </div>
             )}
 
-            {/* Section header */}
-            {cards.length > 0 && (
-                <div className="mb-[24px]">
-                    <h2 className="font-body text-[13px] font-bold tracking-widest text-white/60 uppercase">YOUR EXPERIENCES</h2>
-                </div>
-            )}
+            {/* section header deleted by user request */}
 
             {/* Experience cards */}
             {cards.map((card, index) => (
