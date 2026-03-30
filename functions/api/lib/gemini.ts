@@ -108,36 +108,60 @@ export async function callGeminiWithSearch(
     const model = 'gemini-2.5-flash';
     const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 55000); // 55s abort
+    const MAX_RETRIES = 2; // Initial attempt + 1 retry
+    const TIMEOUT_MS = 45000;
+    
+    let response: Response | undefined;
+    let lastError: any;
 
-    let response: Response;
-    try {
-        response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    role: 'user',
-                    parts: [{ text: prompt }]
-                }],
-                tools: [{ googleSearch: {} }],
-                generationConfig: {
-                    temperature: config?.temperature ?? 0.1,
-                    maxOutputTokens: config?.maxOutputTokens ?? 4096,
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        role: 'user',
+                        parts: [{ text: prompt }]
+                    }],
+                    tools: [{ googleSearch: {} }],
+                    generationConfig: {
+                        temperature: config?.temperature ?? 0.1,
+                        maxOutputTokens: config?.maxOutputTokens ?? 4096,
+                    }
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeout);
+
+            if (response.ok) {
+                break; // Success, break out of retry loop
+            } else {
+                const errorText = await response.text();
+                if (response.status === 429 || response.status >= 500) {
+                    console.warn(`[GEMINI SEARCH] HTTP ${response.status} on attempt ${attempt}: ${errorText}`);
+                    lastError = new Error(`Gemini Search API error: ${response.status} - ${errorText}`);
+                } else {
+                    // Client error (400, 403, 404, etc), do not retry
+                    throw new Error(`Gemini Search API error: ${response.status} - ${errorText}`);
                 }
-            }),
-            signal: controller.signal
-        });
-        clearTimeout(timeout);
-    } catch (e) {
-        clearTimeout(timeout);
-        throw new Error(`Fetch failed or timed out: ${e}`);
+            }
+        } catch (e: any) {
+            clearTimeout(timeout);
+            console.warn(`[GEMINI SEARCH] Fetch failed on attempt ${attempt}: ${e}`);
+            lastError = e;
+        }
+
+        if (attempt < MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
     }
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Gemini Search API error: ${response.status} - ${errorText}`);
+    if (!response || !response.ok) {
+        throw new Error(`Fetch failed or timed out: ${lastError}`);
     }
 
     const json = await response.json() as any;
