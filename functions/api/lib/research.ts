@@ -2,6 +2,7 @@
 // Finds real, verified venues BEFORE card generation
 // Returns raw grounded text — no JSON parsing needed
 import { callGeminiWithSearch } from './gemini';
+import { getDriveTimeConstraint } from './constraints';
 
 export interface ResearchResult {
     research_text: string;
@@ -26,9 +27,11 @@ export async function researchVenues(
     const datesStr = dates && dates !== 'upcoming' && dates !== 'Flexible' ? ` ${dates}` : '';
     const searchQuery = `${activityStr} near ${location} New Zealand${dealmakerStr}${datesStr}`;
 
+    const driveTime = getDriveTimeConstraint(activity);
+
     const prompt = `Search Google for: ${searchQuery}
 
-I need a list of REAL, currently operating venues within a 15-minute drive of ${location}, New Zealand. Include venues in surrounding suburbs — in New Zealand, suburbs are close together and a 10-15 minute drive is normal.
+I need a list of REAL, currently operating venues within a ${driveTime.description} drive of ${location}, New Zealand. Include venues in surrounding suburbs or areas — in New Zealand, suburbs are close together and a ${driveTime.description} drive is normal.
 
 For each venue you find, provide:
 - Exact business name (as it appears on Google Maps or their website)

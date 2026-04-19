@@ -1,6 +1,7 @@
 // Activities tool - calls Parallel AI for local activities
 // Aligned with N8N "Local Activities Search1" tool definition
 import { ensureNZ } from '../lib/location';
+import { getDriveTimeConstraint } from '../lib/constraints';
 
 export async function getActivities(
     location: string,
@@ -10,8 +11,9 @@ export async function getActivities(
     dates?: string
 ) {
     const nzLocation = ensureNZ(location);
+    const driveTime = getDriveTimeConstraint(activityTypes);
     const objectiveParts = [
-        `Find local activities, attractions, and experiences in ${nzLocation} and nearby surrounding suburbs (within 10-15 minutes drive).`,
+        `Find local activities, attractions, and experiences in ${nzLocation} and nearby surrounding areas (within a ${driveTime.description} drive).`,
         `Include outdoor adventures, water sports, tours, cultural activities, entertainment, wellness, wildlife, scenic spots, and family-friendly options.`,
         `Provide specific venue names, addresses, bookings, schedules, prices, requirements, and activity descriptions.`,
     ];

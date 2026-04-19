@@ -1,6 +1,7 @@
 // Dining tool - calls Parallel AI for restaurants and food
 // Aligned with N8N "Food and Dining Search" tool definition
 import { ensureNZ } from '../lib/location';
+import { getDriveTimeConstraint } from '../lib/constraints';
 
 export async function getDining(
     location: string,
@@ -10,8 +11,9 @@ export async function getDining(
     activities?: string
 ) {
     const nzLocation = ensureNZ(location);
+    const driveTime = getDriveTimeConstraint(preferences || activities);
     const objectiveParts = [
-        `Find the most popular and highly rated restaurants for ${preferences || 'dining'} in ${nzLocation} and nearby surrounding suburbs (within 10-15 minutes drive).`,
+        `Find the most popular and highly rated restaurants for ${preferences || 'dining'} in ${nzLocation} and nearby surrounding areas (within a ${driveTime.description} drive).`,
         `Prioritize venues with strong Google reviews, high ratings, media coverage, or well-known local popularity.`,
         `For each venue provide: exact name, address, price range, hours, Google rating if available, and any notable reviews or media mentions.`,
     ];

@@ -108,8 +108,8 @@ export async function callGeminiWithSearch(
     const model = 'gemini-2.5-flash';
     const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
-    const MAX_RETRIES = 2; // Initial attempt + 1 retry
-    const TIMEOUT_MS = 45000;
+    const MAX_RETRIES = 1; // Initial attempt + 1 retry
+    const TIMEOUT_MS = 60000; // Increased to 60s as googleSearch grounding can be slow
     
     let response: Response | undefined;
     let lastError: any;

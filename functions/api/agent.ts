@@ -126,7 +126,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 // Research via Google Search
                 const researchPromise = withTimeout(
                     researchVenues(location, activities, apiKey, dealmaker, dates),
-                    60_000,
+                    130_000,
                     { research_text: 'Research timed out — no venue data available.', success: false }
                 );
 
